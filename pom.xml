@@ -24,29 +24,24 @@
             <artifactId>canal.parse</artifactId>
             <version>1.1.5</version>
         </dependency>
-        <dependency>
-            <groupId>com.jolira</groupId>
-            <artifactId>onejar-maven-plugin</artifactId>
-            <version>1.4.4</version>
-        </dependency>
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
-                <groupId>com.jolira</groupId>
-                <artifactId>onejar-maven-plugin</artifactId>
-                <version>1.4.4</version>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.3.4.RELEASE</version>
                 <executions>
                     <execution>
+                        <id>repackage</id>
                         <goals>
-                            <goal>one-jar</goal>
+                            <goal>repackage</goal>
                         </goals>
                     </execution>
                 </executions>
                 <configuration>
                     <mainClass>com.github.zhuchao941.canal2sql.starter.Canal2SqlStarter</mainClass>
-                    <onejarVersion>0.96</onejarVersion>
                 </configuration>
             </plugin>
         </plugins>
