@@ -1,0 +1,33 @@
+*.class
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+*/target/*
+.classpath
+.project
+.springBeans
+*/.settings/*
+.idea/**
+*.iml
+/D:
+/disconf
+/.settings
+/.idea
+/target
+/src/main/resources/config/
+/sales-service-server/${sys:logging.file.path}/
+/sales-service-server/src/main/resources/config/
+/sales-service-mapper/pom.xml
+.Ds_Store
