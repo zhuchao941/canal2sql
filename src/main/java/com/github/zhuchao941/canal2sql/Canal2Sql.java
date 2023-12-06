@@ -15,6 +15,7 @@ import com.github.zhuchao941.canal2sql.parser.LocalBinlogEventWithLocalDDLParser
 import com.github.zhuchao941.canal2sql.parser.MysqlOnlineEventParser;
 import com.github.zhuchao941.canal2sql.starter.Configuration;
 import com.github.zhuchao941.canal2sql.util.Canal2SqlUtils;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.net.InetSocketAddress;
@@ -41,6 +42,8 @@ public class Canal2Sql {
             ((MysqlOnlineEventParser) parser).setLogEventFilter(new LogEventFilter(startDatetime, endDatetime, startPosition, configuration.getEndPosition()));
         } else {
             parser = new LocalBinlogEventWithLocalDDLParser();
+            Assert.notNull(configuration.getDdl(), "offline mode DDL cannot be null");
+            Assert.notNull(binlogName, "offline mode Binlog name cannot be null");
             ((LocalBinlogEventWithLocalDDLParser) parser).setDdlFile(configuration.getDdl());
             EntryPosition entryPosition = new EntryPosition(binlogName, 0L);
             ((LocalBinlogEventWithLocalDDLParser) parser).setMasterPosition(entryPosition);
