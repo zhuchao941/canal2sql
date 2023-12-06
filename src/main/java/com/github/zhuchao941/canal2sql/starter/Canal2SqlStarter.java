@@ -9,6 +9,8 @@ import java.text.SimpleDateFormat;
 public class Canal2SqlStarter {
 
     public static void main(String[] args) {
+
+
         Options options = new Options();
 
         Option rollback = new Option("B", "rollback", false, "Rollback parameter, default is false");
