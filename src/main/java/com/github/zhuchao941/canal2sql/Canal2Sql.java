@@ -22,6 +22,8 @@ import java.net.InetSocketAddress;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 public class Canal2Sql {
@@ -56,19 +58,22 @@ public class Canal2Sql {
         if (!StringUtils.isEmpty(configuration.getBlackFilter())) {
             parser.setEventBlackFilter(new AviaterRegexFilter(configuration.getBlackFilter()));
         }
+        final AtomicLong logfileOffset = new AtomicLong(0);
+        final AtomicBoolean logged = new AtomicBoolean(false);
         parser.setEventSink(new AbstractCanalEventSink<List<Entry>>() {
 
+            // 这里都是单线程进来的
             public boolean sink(List<Entry> entrys, InetSocketAddress remoteAddress, String destination) throws CanalSinkException {
-
-                long logfileOffset = 0;
                 for (Entry entry : entrys) {
                     if (entry.getEntryType() == EntryType.TRANSACTIONBEGIN) {
-                        logfileOffset = entry.getHeader().getLogfileOffset();
+                        logfileOffset.set(entry.getHeader().getLogfileOffset());
                         continue;
                     }
                     if (entry.getEntryType() == EntryType.TRANSACTIONEND) {
-                        System.out.println();
-                        logfileOffset = 0;
+                        if (logged.getAndSet(false)) {
+                            System.out.println();
+                        }
+                        logfileOffset.set(0);
                         continue;
                     }
 
@@ -84,19 +89,19 @@ public class Canal2Sql {
 
                         for (RowData rowData : rowChage.getRowDatasList()) {
                             if (eventType == EventType.DELETE) {
-                                Canal2SqlUtils.printSql(rollback, append, logfileOffset, entry, o -> {
+                                Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> {
                                     List<Column> beforeColumnsList = rowData.getBeforeColumnsList();
                                     List<Column> pkList = beforeColumnsList.stream().filter(i -> i.getIsKey()).collect(Collectors.toList());
                                     return Canal2SqlUtils.binlog2Delete(entry, pkList);
                                 }, o -> Canal2SqlUtils.binlog2Insert(entry, rowData.getBeforeColumnsList()));
                             } else if (eventType == EventType.INSERT) {
                                 List<Column> afterColumnsList = rowData.getAfterColumnsList();
-                                Canal2SqlUtils.printSql(rollback, append, logfileOffset, entry, o -> Canal2SqlUtils.binlog2Insert(entry, afterColumnsList), o -> {
+                                Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> Canal2SqlUtils.binlog2Insert(entry, afterColumnsList), o -> {
                                     List<Column> pkList = afterColumnsList.stream().filter(i -> i.getIsKey()).collect(Collectors.toList());
                                     return Canal2SqlUtils.binlog2Delete(entry, pkList);
                                 });
                             } else {
-                                Canal2SqlUtils.printSql(rollback, append, logfileOffset, entry, o -> {
+                                Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> {
                                     List<Column> afterColumnsList = rowData.getAfterColumnsList();
                                     List<Column> beforeColumnsList = rowData.getBeforeColumnsList();
                                     List<Column> pkList = beforeColumnsList.stream().filter(i -> i.getIsKey()).collect(Collectors.toList());

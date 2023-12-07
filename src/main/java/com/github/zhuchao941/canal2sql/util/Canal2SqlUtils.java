@@ -5,6 +5,7 @@ import com.alibaba.otter.canal.protocol.CanalEntry;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -52,7 +53,7 @@ public class Canal2SqlUtils {
         return sb.toString();
     }
 
-    public static void printSql(boolean rollback, boolean append, long logfileOffset, CanalEntry.Entry entry, Function<Object, String> sqlFunction, Function<Object, String> rollbackFunction) {
+    public static void printSql(boolean rollback, boolean append, AtomicBoolean logged, long logfileOffset, CanalEntry.Entry entry, Function<Object, String> sqlFunction, Function<Object, String> rollbackFunction) {
         String sql = "";
         String rollbackSql = "";
         if (append || rollback) {
@@ -68,7 +69,9 @@ public class Canal2SqlUtils {
         } else if (rollback) {
             sql = rollbackSql;
         }
-        System.out.println("#" + logfileOffset + " " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(entry.getHeader().getExecuteTime())));
+        if (logged.compareAndSet(false, true)) {
+            System.out.println("#" + logfileOffset + " " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(entry.getHeader().getExecuteTime())));
+        }
         System.out.println(sql);
     }
 
