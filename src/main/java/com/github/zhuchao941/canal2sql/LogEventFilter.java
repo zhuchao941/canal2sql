@@ -68,17 +68,30 @@ public class LogEventFilter {
             return null;
         }
         if (endTime != null && event.getWhen() > endTime.getTime() / 1000) {
+            shutdownLater();
             return null;
         }
         if (startPosition != null && event.getLogPos() < startPosition) {
             return null;
         }
         if (endPosition != null && event.getLogPos() > endPosition) {
+            shutdownLater();
             return null;
         }
         if (serverId != 0 && event.getServerId() != serverId) {
             throw new ServerIdNotMatchException("unexpected serverId " + serverId + " in binlog file !");
         }
         return event;
+    }
+
+    private void shutdownLater(){
+        new Thread(() -> {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            System.exit(1);
+        }).start();
     }
 }
