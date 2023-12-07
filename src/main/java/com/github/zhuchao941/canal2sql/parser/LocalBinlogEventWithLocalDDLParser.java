@@ -16,6 +16,7 @@ import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.github.zhuchao941.canal2sql.LogEventFilter;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 
 /**
@@ -29,6 +30,7 @@ public class LocalBinlogEventWithLocalDDLParser extends AbstractMysqlEventParser
     // 数据库信息
     protected AuthenticationInfo masterInfo = new AuthenticationInfo(new InetSocketAddress("localhost", 3306), "", "");
     protected EntryPosition masterPosition;        // binlog信息
+    protected MysqlConnection    metaConnection;        // 查询meta信息的链接
     protected TableMetaCache tableMetaCache;        // 对应meta
 
     protected String directory;
@@ -50,6 +52,12 @@ public class LocalBinlogEventWithLocalDDLParser extends AbstractMysqlEventParser
 
     @Override
     protected void preDump(ErosaConnection connection) {
+        metaConnection = buildMysqlConnection();
+        try {
+            metaConnection.connect();
+        } catch (IOException e) {
+            throw new CanalParseException(e);
+        }
         if (tableMetaTSDB != null && tableMetaTSDB instanceof DatabaseTableMeta) {
             ((DatabaseTableMeta) tableMetaTSDB).setFilter(eventFilter);
             ((DatabaseTableMeta) tableMetaTSDB).setBlackFilter(eventBlackFilter);
@@ -57,7 +65,11 @@ public class LocalBinlogEventWithLocalDDLParser extends AbstractMysqlEventParser
             ((DatabaseTableMeta) tableMetaTSDB).setSnapshotExpire(tsdbSnapshotExpire);
             ((DatabaseTableMeta) tableMetaTSDB).init(destination);
         }
-        tableMetaCache = new TableMetaCache(ddlFile);
+        if (StringUtils.isNotBlank(ddlFile)) {
+            tableMetaCache = new TableMetaCache(ddlFile);
+        } else {
+            tableMetaCache = new TableMetaCache(metaConnection, tableMetaTSDB);
+        }
         ((LogEventConvert) binlogParser).setTableMetaCache(tableMetaCache);
     }
 
@@ -97,6 +109,19 @@ public class LocalBinlogEventWithLocalDDLParser extends AbstractMysqlEventParser
         connection.setNeedWait(this.needWait);
         connection.setLogEventFilter(this.logEventFilter);
 
+        return connection;
+    }
+
+    private MysqlConnection buildMysqlConnection() {
+        MysqlConnection connection = new MysqlConnection(runningInfo.getAddress(),
+                runningInfo.getUsername(),
+                runningInfo.getPassword(),
+                connectionCharsetNumber,
+                runningInfo.getDefaultDatabaseName());
+        connection.getConnector().setReceiveBufferSize(64 * 1024);
+        connection.getConnector().setSendBufferSize(64 * 1024);
+        connection.getConnector().setSoTimeout(30 * 1000);
+        connection.setCharset(connectionCharset);
         return connection;
     }
 
