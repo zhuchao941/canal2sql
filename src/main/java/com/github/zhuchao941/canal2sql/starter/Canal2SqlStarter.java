@@ -61,6 +61,15 @@ public class Canal2SqlStarter {
         Option mode = new Option("mode", true, "Specify running mode");
         options.addOption(mode);
 
+        Option instanceId = new Option("instanceId", true, "Specify instanceId");
+        options.addOption(instanceId);
+
+        Option ak = new Option("ak", true, "Specify ak");
+        options.addOption(ak);
+
+        Option sk = new Option("sk", true, "Specify sk");
+        options.addOption(sk);
+
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd;
@@ -91,6 +100,9 @@ public class Canal2SqlStarter {
         String filterInput = cmd.getOptionValue("filter");
         String blackFilterInput = cmd.getOptionValue("black_filter");
         String modeInput = cmd.getOptionValue("mode");
+        String instanceIdInput = cmd.getOptionValue("instanceId");
+        String akInput = cmd.getOptionValue("ak");
+        String skInput = cmd.getOptionValue("sk");
 
         // Print the input values
         System.out.println("Mode: " + blackFilterInput);
@@ -109,6 +121,9 @@ public class Canal2SqlStarter {
         System.out.println("End position: " + endPositionInput);
         System.out.println("Filter: " + filterInput);
         System.out.println("Blacklist filter: " + blackFilterInput);
+        System.out.println("InstanceId: " + instanceIdInput);
+        System.out.println("ak: " + akInput);
+        System.out.println("sk: " + skInput);
 
         // Do something with the input values
 
@@ -136,6 +151,9 @@ public class Canal2SqlStarter {
         config.setDir(dirInput);
         config.setBinlogName(binlogNameInput);
         config.setMode(modeInput);
+        config.setInstanceId(instanceIdInput);
+        config.setAk(akInput);
+        config.setSk(skInput);
 
         new Canal2Sql().run(config);
     }

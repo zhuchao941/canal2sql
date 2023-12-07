@@ -45,7 +45,13 @@ public class BinlogFileEventParser extends AbstractMysqlEventParser implements C
 
     @Override
     protected ErosaConnection buildErosaConnection() {
-        return buildLocalBinLogConnection();
+        BinlogFileConnection connection = new BinlogFileConnection();
+
+        connection.setBufferSize(this.bufferSize);
+        connection.setBinlogFile(this.binlogFile);
+        connection.setLogEventFilter(this.logEventFilter);
+
+        return connection;
     }
 
     @Override
@@ -97,16 +103,6 @@ public class BinlogFileEventParser extends AbstractMysqlEventParser implements C
         }
 
         super.stop();
-    }
-
-    private ErosaConnection buildLocalBinLogConnection() {
-        BinlogFileConnection connection = new BinlogFileConnection();
-
-        connection.setBufferSize(this.bufferSize);
-        connection.setBinlogFile(this.binlogFile);
-        connection.setLogEventFilter(this.logEventFilter);
-
-        return connection;
     }
 
     private MysqlConnection buildMysqlConnection() {

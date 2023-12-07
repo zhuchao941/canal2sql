@@ -19,6 +19,9 @@ public class Configuration {
     private String filter;
     private String blackFilter;
     private String mode;
+    private String instanceId;
+    private String ak;
+    private String sk;
 
     public boolean isRollback() {
         return rollback;
@@ -146,5 +149,29 @@ public class Configuration {
 
     public void setMode(String mode) {
         this.mode = mode;
+    }
+
+    public String getInstanceId() {
+        return instanceId;
+    }
+
+    public void setInstanceId(String instanceId) {
+        this.instanceId = instanceId;
+    }
+
+    public String getAk() {
+        return ak;
+    }
+
+    public void setAk(String ak) {
+        this.ak = ak;
+    }
+
+    public String getSk() {
+        return sk;
+    }
+
+    public void setSk(String sk) {
+        this.sk = sk;
     }
 }
