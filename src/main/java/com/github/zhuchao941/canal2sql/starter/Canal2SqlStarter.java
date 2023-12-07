@@ -58,6 +58,9 @@ public class Canal2SqlStarter {
         Option blackFilter = new Option("black_filter", true, "Specify blacklist configuration");
         options.addOption(blackFilter);
 
+        Option mode = new Option("mode", true, "Specify running mode");
+        options.addOption(mode);
+
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd;
@@ -87,8 +90,10 @@ public class Canal2SqlStarter {
         String endPositionInput = cmd.getOptionValue("end_position");
         String filterInput = cmd.getOptionValue("filter");
         String blackFilterInput = cmd.getOptionValue("black_filter");
+        String modeInput = cmd.getOptionValue("mode");
 
         // Print the input values
+        System.out.println("Mode: " + blackFilterInput);
         System.out.println("Rollback: " + rollbackInput);
         System.out.println("Append: " + appendInput);
         System.out.println("Username: " + userInput);
@@ -130,6 +135,7 @@ public class Canal2SqlStarter {
         config.setBlackFilter(blackFilterInput);
         config.setDir(dirInput);
         config.setBinlogName(binlogNameInput);
+        config.setMode(modeInput);
 
         new Canal2Sql().run(config);
     }

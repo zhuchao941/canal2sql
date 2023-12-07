@@ -1,7 +1,5 @@
 package com.github.zhuchao941.canal2sql.starter;
 
-import org.springframework.util.StringUtils;
-
 import java.util.Date;
 
 public class Configuration {
@@ -20,6 +18,7 @@ public class Configuration {
     private Long endPosition;
     private String filter;
     private String blackFilter;
+    private String mode;
 
     public boolean isRollback() {
         return rollback;
@@ -141,7 +140,11 @@ public class Configuration {
         this.blackFilter = blackFilter;
     }
 
-    public boolean isOnline() {
-        return !StringUtils.isEmpty(this.host);
+    public String getMode() {
+        return mode;
+    }
+
+    public void setMode(String mode) {
+        this.mode = mode;
     }
 }

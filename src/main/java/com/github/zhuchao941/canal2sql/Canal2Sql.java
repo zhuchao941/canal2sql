@@ -11,7 +11,7 @@ import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.sink.AbstractCanalEventSink;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
-import com.github.zhuchao941.canal2sql.parser.LocalBinlogEventWithLocalDDLParser;
+import com.github.zhuchao941.canal2sql.parser.BinlogFileEventParser;
 import com.github.zhuchao941.canal2sql.parser.MysqlOnlineEventParser;
 import com.github.zhuchao941.canal2sql.starter.Configuration;
 import com.github.zhuchao941.canal2sql.util.Canal2SqlUtils;
@@ -31,26 +31,32 @@ public class Canal2Sql {
     public void run(Configuration configuration) {
         boolean rollback = configuration.isRollback();
         boolean append = configuration.isAppend();
-        String directory = configuration.getDir();
+//        String directory = configuration.getDir();
         String binlogName = configuration.getBinlogName();
         Date startDatetime = configuration.getStartDatetime();
         Date endDatetime = configuration.getEndDatetime();
         Long startPosition = configuration.getStartPosition();
         AbstractMysqlEventParser parser;
-        if (configuration.isOnline()) {
+        String mode = configuration.getMode();
+        if ("online".equalsIgnoreCase(mode)) {
             parser = new MysqlOnlineEventParser();
             ((MysqlEventParser) parser).setMasterInfo(new AuthenticationInfo(new InetSocketAddress(configuration.getHost(), configuration.getPort()), configuration.getUsername(), configuration.getPassword()));
             ((MysqlEventParser) parser).setMasterPosition(new EntryPosition(binlogName, 0L));
             ((MysqlOnlineEventParser) parser).setLogEventFilter(new LogEventFilter(startDatetime, endDatetime, startPosition, configuration.getEndPosition()));
-        } else {
-            parser = new LocalBinlogEventWithLocalDDLParser();
-            Assert.notNull(configuration.getDdl(), "offline mode DDL cannot be null");
+        } else if ("binlog".equalsIgnoreCase(configuration.getMode())) {
+            parser = new BinlogFileEventParser();
+            if (org.apache.commons.lang.StringUtils.isNotBlank(configuration.getHost())) {
+                ((BinlogFileEventParser) parser).setMasterInfo(new AuthenticationInfo(new InetSocketAddress(configuration.getHost(), configuration.getPort()), configuration.getUsername(), configuration.getPassword()));
+            }
             Assert.notNull(binlogName, "offline mode Binlog name cannot be null");
-            ((LocalBinlogEventWithLocalDDLParser) parser).setDdlFile(configuration.getDdl());
-            EntryPosition entryPosition = new EntryPosition(binlogName, 0L);
-            ((LocalBinlogEventWithLocalDDLParser) parser).setMasterPosition(entryPosition);
-            ((LocalBinlogEventWithLocalDDLParser) parser).setLogEventFilter(new LogEventFilter(startDatetime, endDatetime, startPosition, configuration.getEndPosition()));
-            ((LocalBinlogEventWithLocalDDLParser) parser).setDirectory(directory);
+            ((BinlogFileEventParser) parser).setDdlFile(configuration.getDdl());
+            // 这里后续dump不依赖journalName了
+            EntryPosition entryPosition = new EntryPosition("FIXED", 0L);
+            ((BinlogFileEventParser) parser).setMasterPosition(entryPosition);
+            ((BinlogFileEventParser) parser).setLogEventFilter(new LogEventFilter(startDatetime, endDatetime, startPosition, configuration.getEndPosition()));
+            ((BinlogFileEventParser) parser).setBinlogFile(binlogName);
+        } else {
+            throw new RuntimeException("unsupported mode");
         }
         if (!StringUtils.isEmpty(configuration.getFilter())) {
             parser.setEventFilter(new AviaterRegexFilter(configuration.getFilter()));
