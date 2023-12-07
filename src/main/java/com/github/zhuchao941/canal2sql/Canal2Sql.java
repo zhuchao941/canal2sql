@@ -96,17 +96,17 @@ public class Canal2Sql {
                                 });
                             } else {
                                 Canal2SqlUtils.printSql(rollback, append, logfileOffset, entry, o -> {
+                                    List<Column> afterColumnsList = rowData.getAfterColumnsList();
+                                    List<Column> beforeColumnsList = rowData.getBeforeColumnsList();
+                                    List<Column> pkList = beforeColumnsList.stream().filter(i -> i.getIsKey()).collect(Collectors.toList());
+                                    return Canal2SqlUtils.binlog2Update(entry, afterColumnsList.stream().filter(column -> column.getUpdated()).collect(Collectors.toList()), pkList);
+                                }, o -> {
                                     List<Column> beforeColumnsList = rowData.getBeforeColumnsList();
                                     List<Column> afterColumnsList = rowData.getAfterColumnsList();
                                     Map<String, Column> updatedMap = afterColumnsList.stream().filter(column -> column.getUpdated()).collect(Collectors.toMap(k -> k.getName(), v -> v));
                                     List<Column> pkList = beforeColumnsList.stream().filter(i -> i.getIsKey()).collect(Collectors.toList());
                                     List<Column> updatedColumnsList = beforeColumnsList.stream().filter(column -> updatedMap.get(column.getName()) != null).collect(Collectors.toList());
                                     return Canal2SqlUtils.binlog2Update(entry, updatedColumnsList, pkList);
-                                }, o -> {
-                                    List<Column> afterColumnsList = rowData.getAfterColumnsList();
-                                    List<Column> beforeColumnsList = rowData.getBeforeColumnsList();
-                                    List<Column> pkList = beforeColumnsList.stream().filter(i -> i.getIsKey()).collect(Collectors.toList());
-                                    return Canal2SqlUtils.binlog2Update(entry, afterColumnsList.stream().filter(column -> column.getUpdated()).collect(Collectors.toList()), pkList);
                                 });
                             }
                         }
