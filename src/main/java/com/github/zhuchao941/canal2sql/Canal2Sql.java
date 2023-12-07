@@ -67,6 +67,7 @@ public class Canal2Sql {
                         continue;
                     }
                     if (entry.getEntryType() == EntryType.TRANSACTIONEND) {
+                        System.out.println();
                         logfileOffset = 0;
                         continue;
                     }
