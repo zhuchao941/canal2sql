@@ -70,9 +70,6 @@ public class BinlogFileConnection implements ErosaConnection {
             LogEvent event = null;
             while (fetcher.fetch()) {
                 event = decoder.decode(fetcher, context);
-                if (logEventFilter != null) {
-                    event = logEventFilter.filter(event);
-                }
                 if (event == null) {
                     continue;
                 }

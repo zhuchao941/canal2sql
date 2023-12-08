@@ -258,13 +258,6 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
                     event.setEvent(logEvent);
                 }
 
-                if (logEventFilter != null) {
-                    logEvent = logEventFilter.filter(logEvent);
-                    if (logEvent == null) {
-                        return;
-                    }
-                }
-
                 int eventType = logEvent.getHeader().getType();
                 TableMeta tableMeta = null;
                 boolean needDmlParse = false;
@@ -359,11 +352,15 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
 
         public void onEvent(MessageEvent event, long sequence, boolean endOfBatch) throws Exception {
             try {
+                LogEvent logEvent = event.getEvent();
                 if (event.getEntry() != null) {
-                    transactionBuffer.add(event.getEntry());
+                    if (logEventFilter != null) {
+                        if (logEventFilter.filter(logEvent) != null) {
+                            transactionBuffer.add(event.getEntry());
+                        }
+                    }
                 }
 
-                LogEvent logEvent = event.getEvent();
                 if (connection instanceof com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection && logEvent.getSemival() == 1) {
                     // semi ack回报
                     ((MysqlConnection) connection).sendSemiAck(logEvent.getHeader().getLogFileName(),
@@ -376,6 +373,7 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
                 event.setTable(null);
                 event.setEntry(null);
                 event.setNeedDmlParse(false);
+
             } catch (Throwable e) {
                 exception = new CanalParseException(e);
                 throw exception;

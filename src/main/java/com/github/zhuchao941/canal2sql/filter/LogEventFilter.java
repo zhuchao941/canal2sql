@@ -32,46 +32,6 @@ public class LogEventFilter {
         this.endFile = endFile;
     }
 
-    public long getServerId() {
-        return serverId;
-    }
-
-    public void setServerId(long serverId) {
-        this.serverId = serverId;
-    }
-
-    public Date getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(Date startTime) {
-        this.startTime = startTime;
-    }
-
-    public Date getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(Date endTime) {
-        this.endTime = endTime;
-    }
-
-    public Long getStartPosition() {
-        return startPosition;
-    }
-
-    public void setStartPosition(Long startPosition) {
-        this.startPosition = startPosition;
-    }
-
-    public Long getEndPosition() {
-        return endPosition;
-    }
-
-    public void setEndPosition(Long endPosition) {
-        this.endPosition = endPosition;
-    }
-
     public LogEvent filter(LogEvent event) {
         if (event == null) {
             return null;
@@ -81,7 +41,7 @@ public class LogEventFilter {
             return null;
         }
         if (endTime != null && event.getWhen() > endTime.getTime() / 1000) {
-            shutdownLater();
+            shutdownNow();
             return null;
         }
         // binlog 文件需要从头遍历，而online模式可以直接从指定位置读
@@ -97,12 +57,12 @@ public class LogEventFilter {
 
         if (endFile == null) {
             if (endPosition != null && event.getLogPos() > endPosition) {
-                shutdownLater();
+                shutdownNow();
                 return null;
             }
         } else {
             if (endFile.equals(logFileName) && endPosition != null && event.getLogPos() > endPosition) {
-                shutdownLater();
+                shutdownNow();
                 return null;
             }
         }
@@ -113,14 +73,7 @@ public class LogEventFilter {
         return event;
     }
 
-    private void shutdownLater() {
-        new Thread(() -> {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            System.exit(1);
-        }).start();
+    private void shutdownNow() {
+        System.exit(1);
     }
 }
