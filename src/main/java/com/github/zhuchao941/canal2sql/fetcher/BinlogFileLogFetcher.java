@@ -1,4 +1,4 @@
-package com.github.zhuchao941.canal2sql;
+package com.github.zhuchao941.canal2sql.fetcher;
 
 import com.taobao.tddl.dbsync.binlog.LogEvent;
 import com.taobao.tddl.dbsync.binlog.LogFetcher;

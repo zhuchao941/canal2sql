@@ -11,6 +11,7 @@ import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.sink.AbstractCanalEventSink;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
+import com.github.zhuchao941.canal2sql.filter.LogEventFilter;
 import com.github.zhuchao941.canal2sql.parser.AliyunBinlogFileEventParser;
 import com.github.zhuchao941.canal2sql.parser.BinlogFileEventParser;
 import com.github.zhuchao941.canal2sql.parser.MysqlOnlineEventParser;

@@ -1,4 +1,4 @@
-package com.github.zhuchao941.canal2sql;
+package com.github.zhuchao941.canal2sql.util;
 
 import com.aliyun.rds20140815.models.DescribeBinlogFilesRequest;
 import com.aliyun.rds20140815.models.DescribeBinlogFilesResponse;

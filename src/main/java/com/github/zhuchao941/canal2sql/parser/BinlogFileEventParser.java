@@ -12,8 +12,8 @@ import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
-import com.github.zhuchao941.canal2sql.LogEventFilter;
-import com.github.zhuchao941.canal2sql.BinlogFileConnection;
+import com.github.zhuchao941.canal2sql.filter.LogEventFilter;
+import com.github.zhuchao941.canal2sql.connection.BinlogFileConnection;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;

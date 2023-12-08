@@ -1,4 +1,4 @@
-package com.github.zhuchao941.canal2sql;
+package com.github.zhuchao941.canal2sql.filter;
 
 import com.alibaba.otter.canal.parse.exception.ServerIdNotMatchException;
 import com.taobao.tddl.dbsync.binlog.LogEvent;

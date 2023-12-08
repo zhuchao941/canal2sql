@@ -1,7 +1,7 @@
 package com.github.zhuchao941.canal2sql.parser;
 
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
-import com.github.zhuchao941.canal2sql.AliyunBinlogFileConnection;
+import com.github.zhuchao941.canal2sql.connection.AliyunBinlogFileConnection;
 
 import java.util.Date;
 

@@ -1,9 +1,11 @@
-package com.github.zhuchao941.canal2sql;
+package com.github.zhuchao941.canal2sql.connection;
 
 import com.alibaba.otter.canal.parse.driver.mysql.packets.GTIDSet;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
 import com.alibaba.otter.canal.parse.inbound.MultiStageCoprocessor;
 import com.alibaba.otter.canal.parse.inbound.SinkFunction;
+import com.github.zhuchao941.canal2sql.fetcher.BinlogFileLogFetcher;
+import com.github.zhuchao941.canal2sql.filter.LogEventFilter;
 import com.taobao.tddl.dbsync.binlog.*;
 import org.apache.commons.lang.NotImplementedException;
 import org.slf4j.Logger;
