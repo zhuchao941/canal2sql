@@ -41,37 +41,40 @@ public class Canal2Sql {
         String mode = configuration.getMode();
         if ("online".equalsIgnoreCase(mode)) {
             parser = new MysqlOnlineEventParser();
-            ((MysqlEventParser) parser).setMasterInfo(new AuthenticationInfo(new InetSocketAddress(configuration.getHost(), configuration.getPort()), configuration.getUsername(), configuration.getPassword()));
-            ((MysqlEventParser) parser).setMasterPosition(new EntryPosition(binlogName, 0L));
+            MysqlEventParser mysqlEventParser = (MysqlEventParser) parser;
+            mysqlEventParser.setMasterInfo(new AuthenticationInfo(new InetSocketAddress(configuration.getHost(), configuration.getPort()), configuration.getUsername(), configuration.getPassword()));
+            mysqlEventParser.setMasterPosition(new EntryPosition(binlogName, 0L));
             ((MysqlOnlineEventParser) parser).setLogEventFilter(new LogEventFilter(startDatetime, endDatetime, startPosition, configuration.getEndPosition()));
         } else if ("file".equalsIgnoreCase(mode)) {
             parser = new BinlogFileEventParser();
+            BinlogFileEventParser binlogFileEventParser = (BinlogFileEventParser) parser;
             if (org.apache.commons.lang.StringUtils.isNotBlank(configuration.getHost())) {
-                ((BinlogFileEventParser) parser).setMasterInfo(new AuthenticationInfo(new InetSocketAddress(configuration.getHost(), configuration.getPort()), configuration.getUsername(), configuration.getPassword()));
+                binlogFileEventParser.setMasterInfo(new AuthenticationInfo(new InetSocketAddress(configuration.getHost(), configuration.getPort()), configuration.getUsername(), configuration.getPassword()));
             }
             Assert.notNull(binlogName, "offline mode Binlog name cannot be null");
-            ((BinlogFileEventParser) parser).setDdlFile(configuration.getDdl());
+            binlogFileEventParser.setDdlFile(configuration.getDdl());
             // 这里后续dump不依赖journalName了
             EntryPosition entryPosition = new EntryPosition("FIXED", 0L);
-            ((BinlogFileEventParser) parser).setMasterPosition(entryPosition);
-            ((BinlogFileEventParser) parser).setLogEventFilter(new LogEventFilter(startDatetime, endDatetime, startPosition, configuration.getEndPosition()));
-            ((BinlogFileEventParser) parser).setBinlogFile(binlogName);
+            binlogFileEventParser.setMasterPosition(entryPosition);
+            binlogFileEventParser.setLogEventFilter(new LogEventFilter(startDatetime, endDatetime, startPosition, configuration.getEndPosition()));
+            binlogFileEventParser.setBinlogFile(binlogName);
         } else if ("aliyun".equalsIgnoreCase(mode)){
             parser = new AliyunBinlogFileEventParser();
+            AliyunBinlogFileEventParser aliyunBinlogFileEventParser = (AliyunBinlogFileEventParser) parser;
             if (org.apache.commons.lang.StringUtils.isNotBlank(configuration.getHost())) {
-                ((AliyunBinlogFileEventParser) parser).setMasterInfo(new AuthenticationInfo(new InetSocketAddress(configuration.getHost(), configuration.getPort()), configuration.getUsername(), configuration.getPassword()));
+                aliyunBinlogFileEventParser.setMasterInfo(new AuthenticationInfo(new InetSocketAddress(configuration.getHost(), configuration.getPort()), configuration.getUsername(), configuration.getPassword()));
             }
-            ((AliyunBinlogFileEventParser) parser).setDdlFile(configuration.getDdl());
+            aliyunBinlogFileEventParser.setDdlFile(configuration.getDdl());
             // 这里后续dump不依赖journalName了
             EntryPosition entryPosition = new EntryPosition("FIXED", 0L);
-            ((AliyunBinlogFileEventParser) parser).setMasterPosition(entryPosition);
-            ((AliyunBinlogFileEventParser) parser).setLogEventFilter(new LogEventFilter(startDatetime, endDatetime, startPosition, configuration.getEndPosition()));
-            ((AliyunBinlogFileEventParser) parser).setStartTime(startDatetime);
-            ((AliyunBinlogFileEventParser) parser).setEndTime(endDatetime);
-            ((AliyunBinlogFileEventParser) parser).setInstanceId(configuration.getInstanceId());
-            ((AliyunBinlogFileEventParser) parser).setAk(configuration.getAk());
-            ((AliyunBinlogFileEventParser) parser).setSk(configuration.getSk());
-            ((AliyunBinlogFileEventParser) parser).setInternal(configuration.isInternal());
+            aliyunBinlogFileEventParser.setMasterPosition(entryPosition);
+            aliyunBinlogFileEventParser.setLogEventFilter(new LogEventFilter(startDatetime, endDatetime, startPosition, configuration.getEndPosition()));
+            aliyunBinlogFileEventParser.setStartTime(startDatetime);
+            aliyunBinlogFileEventParser.setEndTime(endDatetime);
+            aliyunBinlogFileEventParser.setInstanceId(configuration.getInstanceId());
+            aliyunBinlogFileEventParser.setAk(configuration.getAk());
+            aliyunBinlogFileEventParser.setSk(configuration.getSk());
+            aliyunBinlogFileEventParser.setInternal(configuration.isInternal());
         } else {
             throw new RuntimeException("unsupported mode");
         }
