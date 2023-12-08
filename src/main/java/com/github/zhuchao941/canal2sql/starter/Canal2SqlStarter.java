@@ -34,22 +34,22 @@ public class Canal2SqlStarter {
         Option dir = new Option("dir", true, "Specify local binlog dir");
         options.addOption(dir);
 
-        Option binlog_name = new Option("binlog_name", true, "Specify binlog name");
-        options.addOption(binlog_name);
+        Option fileUrl = new Option("file_url", true, "Specify binlog file url");
+        options.addOption(fileUrl);
 
         Option ddl = new Option("ddl", true, "Specify local ddl");
         options.addOption(ddl);
 
-        Option startDatetime = new Option("start_time", true, "Start datetime (only effective in offline mode)");
+        Option startDatetime = new Option("start_time", true, "Start datetime");
         options.addOption(startDatetime);
 
-        Option endDatetime = new Option("end_time", true, "End datetime (only effective in offline mode)");
+        Option endDatetime = new Option("end_time", true, "End datetime");
         options.addOption(endDatetime);
 
-        Option startPosition = new Option("start_position", true, "Start position (only effective in offline mode)");
+        Option startPosition = new Option("start_position", true, "Start position");
         options.addOption(startPosition);
 
-        Option endPosition = new Option("end_position", true, "End position (only effective in offline mode)");
+        Option endPosition = new Option("end_position", true, "End position");
         options.addOption(endPosition);
 
         Option filter = new Option("filter", true, "Specify filter configuration");
@@ -93,7 +93,7 @@ public class Canal2SqlStarter {
         String passwordInput = cmd.getOptionValue("password");
         String portInput = cmd.getOptionValue("port");
         String hostInput = cmd.getOptionValue("host");
-        String binlogNameInput = cmd.getOptionValue("binlog_name");
+        String fileUrlInput = cmd.getOptionValue("file_url");
         String dirInput = cmd.getOptionValue("dir");
         String ddlInput = cmd.getOptionValue("ddl");
         String startDatetimeInput = cmd.getOptionValue("start_time");
@@ -116,7 +116,7 @@ public class Canal2SqlStarter {
         System.out.println("Password: " + passwordInput);
         System.out.println("Port: " + portInput);
         System.out.println("Host: " + hostInput);
-        System.out.println("Binlog name: " + binlogNameInput);
+        System.out.println("File Url: " + fileUrlInput);
         System.out.println("DIR: " + dirInput);
         System.out.println("DDL: " + ddlInput);
         System.out.println("Start datetime: " + startDatetimeInput);
@@ -149,12 +149,12 @@ public class Canal2SqlStarter {
         } catch (java.text.ParseException e) {
             throw new RuntimeException(e);
         }
-        config.setStartPosition(StringUtils.isEmpty(startPositionInput) ? null : Long.parseLong(startPositionInput));
-        config.setEndPosition(StringUtils.isEmpty(endPositionInput) ? null : Long.parseLong(endPositionInput));
+        config.setStartPosition(startPositionInput);
+        config.setEndPosition(endPositionInput);
         config.setFilter(filterInput);
         config.setBlackFilter(blackFilterInput);
         config.setDir(dirInput);
-        config.setBinlogName(binlogNameInput);
+        config.setFileUrl(fileUrlInput);
         config.setMode(modeInput);
         config.setInstanceId(instanceIdInput);
         config.setAk(akInput);

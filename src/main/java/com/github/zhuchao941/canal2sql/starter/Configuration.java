@@ -10,12 +10,12 @@ public class Configuration {
     private Integer port;
     private String host;
     private String dir;
-    private String binlogName;
+    private String fileUrl;
     private String ddl;
     private Date startDatetime;
     private Date endDatetime;
-    private Long startPosition;
-    private Long endPosition;
+    private String startPosition;
+    private String endPosition;
     private String filter;
     private String blackFilter;
     private String mode;
@@ -80,12 +80,12 @@ public class Configuration {
         this.dir = dir;
     }
 
-    public String getBinlogName() {
-        return binlogName;
+    public String getFileUrl() {
+        return fileUrl;
     }
 
-    public void setBinlogName(String binlogName) {
-        this.binlogName = binlogName;
+    public void setFileUrl(String fileUrl) {
+        this.fileUrl = fileUrl;
     }
 
     public String getDdl() {
@@ -112,19 +112,19 @@ public class Configuration {
         this.endDatetime = endDatetime;
     }
 
-    public Long getStartPosition() {
+    public String getStartPosition() {
         return startPosition;
     }
 
-    public void setStartPosition(Long startPosition) {
+    public void setStartPosition(String startPosition) {
         this.startPosition = startPosition;
     }
 
-    public Long getEndPosition() {
+    public String getEndPosition() {
         return endPosition;
     }
 
-    public void setEndPosition(Long endPosition) {
+    public void setEndPosition(String endPosition) {
         this.endPosition = endPosition;
     }
 

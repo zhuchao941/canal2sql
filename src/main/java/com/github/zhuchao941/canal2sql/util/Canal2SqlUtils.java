@@ -70,7 +70,8 @@ public class Canal2SqlUtils {
             sql = rollbackSql;
         }
         if (logged.compareAndSet(false, true)) {
-            System.out.println("#" + logfileOffset + " " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(entry.getHeader().getExecuteTime())));
+            String logfileName = entry.getHeader().getLogfileName();
+            System.out.println("#" + logfileName + ":" + logfileOffset + " " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(entry.getHeader().getExecuteTime())));
         }
         System.out.println(sql);
     }

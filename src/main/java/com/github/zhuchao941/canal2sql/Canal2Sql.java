@@ -34,32 +34,48 @@ public class Canal2Sql {
         boolean rollback = configuration.isRollback();
         boolean append = configuration.isAppend();
 //        String directory = configuration.getDir();
-        String binlogName = configuration.getBinlogName();
+        String binlogFileUrl = configuration.getFileUrl();
         Date startDatetime = configuration.getStartDatetime();
         Date endDatetime = configuration.getEndDatetime();
-        Long startPosition = configuration.getStartPosition();
+        String startPositionStr = configuration.getStartPosition();
+        String endPositionStr = configuration.getEndPosition();
         AbstractMysqlEventParser parser;
         String mode = configuration.getMode();
         if ("online".equalsIgnoreCase(mode)) {
             parser = new MysqlOnlineEventParser();
             MysqlEventParser mysqlEventParser = (MysqlEventParser) parser;
             mysqlEventParser.setMasterInfo(new AuthenticationInfo(new InetSocketAddress(configuration.getHost(), configuration.getPort()), configuration.getUsername(), configuration.getPassword()));
-            mysqlEventParser.setMasterPosition(new EntryPosition(binlogName, 0L));
-            ((MysqlOnlineEventParser) parser).setLogEventFilter(new LogEventFilter(startDatetime, endDatetime, startPosition, configuration.getEndPosition()));
+            String startFile = null;
+            Long startPosition = null;
+            String endFile = null;
+            Long endPosition = null;
+            // 这里直接指定startPosition性能更好
+            if (org.apache.commons.lang.StringUtils.isNotBlank(startPositionStr)) {
+                String[] split = startPositionStr.split("\\|");
+                startFile = split[0];
+                startPosition = Long.parseLong(split[1]);
+                mysqlEventParser.setMasterPosition(new EntryPosition(startFile, startPosition));
+            }
+            if (org.apache.commons.lang.StringUtils.isNotBlank(endPositionStr)) {
+                String[] split = endPositionStr.split("\\|");
+                endFile = split[0];
+                endPosition = Long.parseLong(split[1]);
+            }
+            ((MysqlOnlineEventParser) parser).setLogEventFilter(new LogEventFilter(startDatetime, endDatetime, startPosition, endPosition, startFile, endFile));
         } else if ("file".equalsIgnoreCase(mode)) {
             parser = new BinlogFileEventParser();
             BinlogFileEventParser binlogFileEventParser = (BinlogFileEventParser) parser;
             if (org.apache.commons.lang.StringUtils.isNotBlank(configuration.getHost())) {
                 binlogFileEventParser.setMasterInfo(new AuthenticationInfo(new InetSocketAddress(configuration.getHost(), configuration.getPort()), configuration.getUsername(), configuration.getPassword()));
             }
-            Assert.notNull(binlogName, "offline mode Binlog name cannot be null");
+            Assert.notNull(binlogFileUrl, "offline mode Binlog name cannot be null");
             binlogFileEventParser.setDdlFile(configuration.getDdl());
             // 这里后续dump不依赖journalName了
             EntryPosition entryPosition = new EntryPosition("FIXED", 0L);
             binlogFileEventParser.setMasterPosition(entryPosition);
-            binlogFileEventParser.setLogEventFilter(new LogEventFilter(startDatetime, endDatetime, startPosition, configuration.getEndPosition()));
-            binlogFileEventParser.setBinlogFile(binlogName);
-        } else if ("aliyun".equalsIgnoreCase(mode)){
+            binlogFileEventParser.setLogEventFilter(new LogEventFilter(startDatetime, endDatetime, Long.parseLong(startPositionStr), Long.parseLong(endPositionStr)));
+            binlogFileEventParser.setBinlogFile(binlogFileUrl);
+        } else if ("aliyun".equalsIgnoreCase(mode)) {
             parser = new AliyunBinlogFileEventParser();
             AliyunBinlogFileEventParser aliyunBinlogFileEventParser = (AliyunBinlogFileEventParser) parser;
             if (org.apache.commons.lang.StringUtils.isNotBlank(configuration.getHost())) {
@@ -69,7 +85,7 @@ public class Canal2Sql {
             // 这里后续dump不依赖journalName了
             EntryPosition entryPosition = new EntryPosition("FIXED", 0L);
             aliyunBinlogFileEventParser.setMasterPosition(entryPosition);
-            aliyunBinlogFileEventParser.setLogEventFilter(new LogEventFilter(startDatetime, endDatetime, startPosition, configuration.getEndPosition()));
+            aliyunBinlogFileEventParser.setLogEventFilter(new LogEventFilter(startDatetime, endDatetime, Long.parseLong(startPositionStr), Long.parseLong(endPositionStr)));
             aliyunBinlogFileEventParser.setStartTime(startDatetime);
             aliyunBinlogFileEventParser.setEndTime(endDatetime);
             aliyunBinlogFileEventParser.setInstanceId(configuration.getInstanceId());
