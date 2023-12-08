@@ -3,8 +3,10 @@ package com.github.zhuchao941.canal2sql.parser;
 import com.alibaba.otter.canal.parse.CanalEventParser;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.ErosaConnection;
+import com.alibaba.otter.canal.parse.inbound.MultiStageCoprocessor;
 import com.alibaba.otter.canal.parse.inbound.mysql.AbstractMysqlEventParser;
 import com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection;
+import com.alibaba.otter.canal.parse.inbound.mysql.MysqlMultiStageCoprocessor;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.LogEventConvert;
 import com.alibaba.otter.canal.parse.inbound.mysql.dbsync.TableMetaCache;
 import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DatabaseTableMeta;
@@ -44,6 +46,13 @@ public class BinlogFileEventParser extends AbstractMysqlEventParser implements C
     }
 
     @Override
+    protected MultiStageCoprocessor buildMultiStageCoprocessor() {
+        MultiStageCoprocessor multiStageCoprocessor = super.buildMultiStageCoprocessor();
+        ((MysqlMultiStageCoprocessor)multiStageCoprocessor).setLogEventFilter(this.logEventFilter);
+        return multiStageCoprocessor;
+    }
+
+    @Override
     protected ErosaConnection buildErosaConnection() {
         BinlogFileConnection connection = new BinlogFileConnection();
 
@@ -56,22 +65,22 @@ public class BinlogFileEventParser extends AbstractMysqlEventParser implements C
 
     @Override
     protected void preDump(ErosaConnection connection) {
-        metaConnection = buildMysqlConnection();
-        try {
-            metaConnection.connect();
-        } catch (IOException e) {
-            throw new CanalParseException(e);
-        }
-        if (tableMetaTSDB != null && tableMetaTSDB instanceof DatabaseTableMeta) {
-            ((DatabaseTableMeta) tableMetaTSDB).setFilter(eventFilter);
-            ((DatabaseTableMeta) tableMetaTSDB).setBlackFilter(eventBlackFilter);
-            ((DatabaseTableMeta) tableMetaTSDB).setSnapshotInterval(tsdbSnapshotInterval);
-            ((DatabaseTableMeta) tableMetaTSDB).setSnapshotExpire(tsdbSnapshotExpire);
-            ((DatabaseTableMeta) tableMetaTSDB).init(destination);
-        }
         if (StringUtils.isNotBlank(ddlFile)) {
-        tableMetaCache = new TableMetaCache(ddlFile);
+            tableMetaCache = new TableMetaCache(ddlFile);
         } else {
+            metaConnection = buildMysqlConnection();
+            try {
+                metaConnection.connect();
+            } catch (IOException e) {
+                throw new CanalParseException(e);
+            }
+            if (tableMetaTSDB != null && tableMetaTSDB instanceof DatabaseTableMeta) {
+                ((DatabaseTableMeta) tableMetaTSDB).setFilter(eventFilter);
+                ((DatabaseTableMeta) tableMetaTSDB).setBlackFilter(eventBlackFilter);
+                ((DatabaseTableMeta) tableMetaTSDB).setSnapshotInterval(tsdbSnapshotInterval);
+                ((DatabaseTableMeta) tableMetaTSDB).setSnapshotExpire(tsdbSnapshotExpire);
+                ((DatabaseTableMeta) tableMetaTSDB).init(destination);
+            }
             tableMetaCache = new TableMetaCache(metaConnection, tableMetaTSDB);
         }
         ((LogEventConvert) binlogParser).setTableMetaCache(tableMetaCache);
@@ -117,6 +126,7 @@ public class BinlogFileEventParser extends AbstractMysqlEventParser implements C
         connection.setCharset(connectionCharset);
         return connection;
     }
+
     @Override
     protected EntryPosition findStartPosition(ErosaConnection connection) {
         // 处理逻辑
