@@ -22,6 +22,7 @@ public class Configuration {
     private String instanceId;
     private String ak;
     private String sk;
+    private boolean internal;
 
     public boolean isRollback() {
         return rollback;
@@ -173,5 +174,13 @@ public class Configuration {
 
     public void setSk(String sk) {
         this.sk = sk;
+    }
+
+    public boolean isInternal() {
+        return internal;
+    }
+
+    public void setInternal(boolean internal) {
+        this.internal = internal;
     }
 }

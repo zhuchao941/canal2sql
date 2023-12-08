@@ -33,6 +33,7 @@ public class AliyunBinlogFileConnection implements ErosaConnection {
     private String instanceId;
     private String ak;
     private String sk;
+    private boolean internal;
     private int bufferSize = 16 * 1024;
     private boolean running = false;
     private LogEventFilter logEventFilter;
@@ -92,7 +93,9 @@ public class AliyunBinlogFileConnection implements ErosaConnection {
             try (BinlogFileLogFetcher fetcher = new BinlogFileLogFetcher(bufferSize)) {
                 LogDecoder decoder = new LogDecoder(LogEvent.UNKNOWN_EVENT, LogEvent.ENUM_END_EVENT);
                 LogContext context = new LogContext();
-                fetcher.open(logFile.downloadLink, binlogPosition);
+                String downloadLink = internal ? logFile.intranetDownloadLink : logFile.downloadLink;
+                fetcher.open(downloadLink, binlogPosition);
+                System.out.println(String.format("# download file %s from %s", logFile.logFileName, downloadLink));
                 context.setLogPosition(new LogPosition(binlogfilename, binlogPosition));
                 LogEvent event = null;
                 while (fetcher.fetch()) {
@@ -166,5 +169,9 @@ public class AliyunBinlogFileConnection implements ErosaConnection {
 
     public void setSk(String sk) {
         this.sk = sk;
+    }
+
+    public void setInternal(boolean internal) {
+        this.internal = internal;
     }
 }

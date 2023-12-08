@@ -18,6 +18,7 @@ public class AliyunBinlogFileEventParser extends BinlogFileEventParser {
     private String instanceId;
     private String ak;
     private String sk;
+    private boolean internal;
 
     @Override
     protected ErosaConnection buildErosaConnection() {
@@ -29,6 +30,7 @@ public class AliyunBinlogFileEventParser extends BinlogFileEventParser {
         connection.setInstanceId(this.instanceId);
         connection.setAk(this.ak);
         connection.setSk(this.sk);
+        connection.setInternal(this.internal);
         connection.setLogEventFilter(this.logEventFilter);
 
         return connection;
@@ -52,5 +54,9 @@ public class AliyunBinlogFileEventParser extends BinlogFileEventParser {
 
     public void setSk(String sk) {
         this.sk = sk;
+    }
+
+    public void setInternal(boolean internal) {
+        this.internal = internal;
     }
 }

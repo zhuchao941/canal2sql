@@ -70,6 +70,9 @@ public class Canal2SqlStarter {
         Option sk = new Option("sk", true, "Specify sk");
         options.addOption(sk);
 
+        Option internal = new Option("I", "internal", false, "Append parameter, default is true");
+        options.addOption(internal);
+
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd;
@@ -103,6 +106,7 @@ public class Canal2SqlStarter {
         String instanceIdInput = cmd.getOptionValue("instanceId");
         String akInput = cmd.getOptionValue("ak");
         String skInput = cmd.getOptionValue("sk");
+        boolean internalInput = cmd.hasOption("internal");
 
         // Print the input values
         System.out.println("Mode: " + blackFilterInput);
@@ -124,6 +128,7 @@ public class Canal2SqlStarter {
         System.out.println("InstanceId: " + instanceIdInput);
         System.out.println("ak: " + akInput);
         System.out.println("sk: " + skInput);
+        System.out.println("internal: " + internalInput);
 
         // Do something with the input values
 
@@ -154,6 +159,7 @@ public class Canal2SqlStarter {
         config.setInstanceId(instanceIdInput);
         config.setAk(akInput);
         config.setSk(skInput);
+        config.setInternal(internalInput);
 
         new Canal2Sql().run(config);
     }

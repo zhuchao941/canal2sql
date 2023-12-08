@@ -71,6 +71,7 @@ public class Canal2Sql {
             ((AliyunBinlogFileEventParser) parser).setInstanceId(configuration.getInstanceId());
             ((AliyunBinlogFileEventParser) parser).setAk(configuration.getAk());
             ((AliyunBinlogFileEventParser) parser).setSk(configuration.getSk());
+            ((AliyunBinlogFileEventParser) parser).setInternal(configuration.isInternal());
         } else {
             throw new RuntimeException("unsupported mode");
         }
