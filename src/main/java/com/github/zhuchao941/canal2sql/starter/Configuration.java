@@ -23,6 +23,7 @@ public class Configuration {
     private String ak;
     private String sk;
     private boolean internal;
+    private String sqlType;
 
     public boolean isRollback() {
         return rollback;
@@ -182,5 +183,13 @@ public class Configuration {
 
     public void setInternal(boolean internal) {
         this.internal = internal;
+    }
+
+    public String getSqlType() {
+        return sqlType;
+    }
+
+    public void setSqlType(String sqlType) {
+        this.sqlType = sqlType;
     }
 }

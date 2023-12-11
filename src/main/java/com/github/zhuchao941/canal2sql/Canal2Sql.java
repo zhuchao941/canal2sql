@@ -21,9 +21,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.net.InetSocketAddress;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -111,6 +109,11 @@ public class Canal2Sql {
         if (!StringUtils.isEmpty(configuration.getBlackFilter())) {
             parser.setEventBlackFilter(new AviaterRegexFilter(configuration.getBlackFilter()));
         }
+        String sqlType = configuration.getSqlType();
+        if (org.apache.commons.lang.StringUtils.isBlank(sqlType)) {
+            sqlType = "insert,update,delete,ddl";
+        }
+        Set<String> printableSet = Arrays.stream(sqlType.split(",")).collect(Collectors.toSet());
         final AtomicLong logfileOffset = new AtomicLong(0);
         final AtomicBoolean logged = new AtomicBoolean(false);
         parser.setEventSink(new AbstractCanalEventSink<List<Entry>>() {
@@ -140,6 +143,13 @@ public class Canal2Sql {
 
                         EventType eventType = rowChage.getEventType();
 
+                        final RowChange fRowChange = rowChage;
+
+                        if (rowChage.getIsDdl() && printableSet.contains("ddl")) {
+                            Canal2SqlUtils.printSql(rollback, append, new AtomicBoolean(false), entry.getHeader().getLogfileOffset(), entry, o -> fRowChange.getSql(), o -> "temporarily not support rollback sql for ddl");
+                            System.out.println();
+                            continue;
+                        }
                         for (RowData rowData : rowChage.getRowDatasList()) {
                             if (eventType == EventType.DELETE) {
                                 Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> {
