@@ -3,21 +3,14 @@ package com.github.zhuchao941.canal2sql;
 import com.alibaba.otter.canal.filter.aviater.AviaterRegexFilter;
 import com.alibaba.otter.canal.parse.exception.CanalParseException;
 import com.alibaba.otter.canal.parse.inbound.mysql.AbstractMysqlEventParser;
-import com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser;
 import com.alibaba.otter.canal.parse.index.AbstractLogPositionManager;
-import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.CanalEntry.*;
-import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.alibaba.otter.canal.sink.AbstractCanalEventSink;
 import com.alibaba.otter.canal.sink.exception.CanalSinkException;
-import com.github.zhuchao941.canal2sql.filter.LogEventFilter;
-import com.github.zhuchao941.canal2sql.parser.AliyunBinlogFileEventParser;
-import com.github.zhuchao941.canal2sql.parser.BinlogFileEventParser;
-import com.github.zhuchao941.canal2sql.parser.MysqlOnlineEventParser;
+import com.github.zhuchao941.canal2sql.factory.ParserFactory;
 import com.github.zhuchao941.canal2sql.starter.Configuration;
 import com.github.zhuchao941.canal2sql.util.Canal2SqlUtils;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.net.InetSocketAddress;
@@ -31,78 +24,8 @@ public class Canal2Sql {
     public void run(Configuration configuration) {
         boolean rollback = configuration.isRollback();
         boolean append = configuration.isAppend();
-//        String directory = configuration.getDir();
-        String binlogFileUrl = configuration.getFileUrl();
-        Date startDatetime = configuration.getStartDatetime();
-        Date endDatetime = configuration.getEndDatetime();
-        String startPositionStr = configuration.getStartPosition();
-        String endPositionStr = configuration.getEndPosition();
-        AbstractMysqlEventParser parser;
-        String mode = configuration.getMode();
-        String startFile = null;
-        Long startPosition = null;
-        String endFile = null;
-        Long endPosition = null;
-        if (org.apache.commons.lang.StringUtils.isNotBlank(startPositionStr)) {
-            String[] split = startPositionStr.split("\\|");
-            if (split.length > 1) {
-                startFile = split[0];
-                startPosition = Long.parseLong(split[1]);
-            } else {
-                startPosition = Long.parseLong(split[0]);
-            }
-        }
-        if (org.apache.commons.lang.StringUtils.isNotBlank(endPositionStr)) {
-            String[] split = endPositionStr.split("\\|");
-            if (split.length > 1) {
-                endFile = split[0];
-                endPosition = Long.parseLong(split[1]);
-            } else {
-                endPosition = Long.parseLong(split[0]);
-            }
-        }
-        if ("online".equalsIgnoreCase(mode)) {
-            parser = new MysqlOnlineEventParser();
-            MysqlEventParser mysqlEventParser = (MysqlEventParser) parser;
-            mysqlEventParser.setMasterInfo(new AuthenticationInfo(new InetSocketAddress(configuration.getHost(), configuration.getPort()), configuration.getUsername(), configuration.getPassword()));
-            // 这里直接指定startPosition性能更好
-            if (startFile != null) {
-                mysqlEventParser.setMasterPosition(new EntryPosition(startFile, startPosition));
-            }
-            ((MysqlOnlineEventParser) parser).setLogEventFilter(new LogEventFilter(startDatetime, endDatetime, startPosition, endPosition, startFile, endFile));
-        } else if ("file".equalsIgnoreCase(mode)) {
-            parser = new BinlogFileEventParser();
-            BinlogFileEventParser binlogFileEventParser = (BinlogFileEventParser) parser;
-            if (org.apache.commons.lang.StringUtils.isNotBlank(configuration.getHost())) {
-                binlogFileEventParser.setMasterInfo(new AuthenticationInfo(new InetSocketAddress(configuration.getHost(), configuration.getPort()), configuration.getUsername(), configuration.getPassword()));
-            }
-            Assert.notNull(binlogFileUrl, "offline mode Binlog name cannot be null");
-            binlogFileEventParser.setDdlFile(configuration.getDdl());
-            // 这里后续dump不依赖journalName了
-            EntryPosition entryPosition = new EntryPosition("localFile", 0L);
-            binlogFileEventParser.setMasterPosition(entryPosition);
-            binlogFileEventParser.setLogEventFilter(new LogEventFilter(startDatetime, endDatetime, startPosition, endPosition));
-            binlogFileEventParser.setBinlogFile(binlogFileUrl);
-        } else if ("aliyun".equalsIgnoreCase(mode)) {
-            parser = new AliyunBinlogFileEventParser();
-            AliyunBinlogFileEventParser aliyunBinlogFileEventParser = (AliyunBinlogFileEventParser) parser;
-            if (org.apache.commons.lang.StringUtils.isNotBlank(configuration.getHost())) {
-                aliyunBinlogFileEventParser.setMasterInfo(new AuthenticationInfo(new InetSocketAddress(configuration.getHost(), configuration.getPort()), configuration.getUsername(), configuration.getPassword()));
-            }
-            aliyunBinlogFileEventParser.setDdlFile(configuration.getDdl());
-            // 这里后续dump不依赖journalName了
-            EntryPosition entryPosition = new EntryPosition("rdsFile", 0L);
-            aliyunBinlogFileEventParser.setMasterPosition(entryPosition);
-            aliyunBinlogFileEventParser.setLogEventFilter(new LogEventFilter(startDatetime, endDatetime, startPosition, endPosition));
-            aliyunBinlogFileEventParser.setStartTime(startDatetime);
-            aliyunBinlogFileEventParser.setEndTime(endDatetime);
-            aliyunBinlogFileEventParser.setInstanceId(configuration.getInstanceId());
-            aliyunBinlogFileEventParser.setAk(configuration.getAk());
-            aliyunBinlogFileEventParser.setSk(configuration.getSk());
-            aliyunBinlogFileEventParser.setInternal(configuration.isInternal());
-        } else {
-            throw new RuntimeException("unsupported mode");
-        }
+
+        AbstractMysqlEventParser parser = ParserFactory.createParser(configuration);
         if (!StringUtils.isEmpty(configuration.getFilter())) {
             parser.setEventFilter(new AviaterRegexFilter(configuration.getFilter()));
         }
