@@ -110,7 +110,7 @@ public class Canal2SqlStarter {
         String sqlTypeInput = cmd.getOptionValue("sql_type");
 
         // Print the input values
-        System.out.println("Mode: " + blackFilterInput);
+        System.out.println("Mode: " + modeInput);
         System.out.println("Rollback: " + rollbackInput);
         System.out.println("Append: " + appendInput);
         System.out.println("Username: " + userInput);
