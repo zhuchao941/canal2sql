@@ -32,19 +32,19 @@ import java.util.Arrays;
  */
 public final class BinlogFileLogFetcher extends LogFetcher {
 
-    public static final byte[] BINLOG_MAGIC = { -2, 0x62, 0x69, 0x6e };
+    public static final byte[] BINLOG_MAGIC = {-2, 0x62, 0x69, 0x6e};
 
     private InputStream in;
 
-    public BinlogFileLogFetcher(){
+    public BinlogFileLogFetcher() {
         super(DEFAULT_INITIAL_CAPACITY, DEFAULT_GROWTH_FACTOR);
     }
 
-    public BinlogFileLogFetcher(final int initialCapacity){
+    public BinlogFileLogFetcher(final int initialCapacity) {
         super(initialCapacity, DEFAULT_GROWTH_FACTOR);
     }
 
-    public BinlogFileLogFetcher(final int initialCapacity, final float growthFactor){
+    public BinlogFileLogFetcher(final int initialCapacity, final float growthFactor) {
         super(initialCapacity, growthFactor);
     }
 
@@ -70,9 +70,9 @@ public final class BinlogFileLogFetcher extends LogFetcher {
         }
 
         if (buffer[0] != BINLOG_MAGIC[0] || buffer[1] != BINLOG_MAGIC[1] || buffer[2] != BINLOG_MAGIC[2]
-            || buffer[3] != BINLOG_MAGIC[3]) {
+                || buffer[3] != BINLOG_MAGIC[3]) {
             throw new IOException("Error binlog file header: "
-                                  + Arrays.toString(Arrays.copyOf(buffer, BIN_LOG_HEADER_SIZE)));
+                    + Arrays.toString(Arrays.copyOf(buffer, BIN_LOG_HEADER_SIZE)));
         }
 
         limit = 0;
@@ -81,9 +81,9 @@ public final class BinlogFileLogFetcher extends LogFetcher {
 
         if (filePosition > BIN_LOG_HEADER_SIZE) {
             final int maxFormatDescriptionEventLen = FormatDescriptionLogEvent.LOG_EVENT_MINIMAL_HEADER_LEN
-                                                     + FormatDescriptionLogEvent.ST_COMMON_HEADER_LEN_OFFSET
-                                                     + LogEvent.ENUM_END_EVENT + LogEvent.BINLOG_CHECKSUM_ALG_DESC_LEN
-                                                     + LogEvent.CHECKSUM_CRC32_SIGNATURE_LEN;
+                    + FormatDescriptionLogEvent.ST_COMMON_HEADER_LEN_OFFSET
+                    + LogEvent.ENUM_END_EVENT + LogEvent.BINLOG_CHECKSUM_ALG_DESC_LEN
+                    + LogEvent.CHECKSUM_CRC32_SIGNATURE_LEN;
 
             ensureCapacity(maxFormatDescriptionEventLen);
             limit = in.read(buffer, 0, maxFormatDescriptionEventLen);
@@ -97,67 +97,32 @@ public final class BinlogFileLogFetcher extends LogFetcher {
      * @see LogFetcher#fetch()
      */
     public boolean fetch() throws IOException {
-        if(in == null){
+        if (in == null) {
             return false;
         }
-        if (limit == 0) {
-//            final int len = in.read(buffer, 0, buffer.length);
-            final int len = readFully(in, buffer, 0, buffer.length);
-//            System.out.println("1-read length:" + len);
-            if (len >= 0) {
-                limit += len;
-                position = 0;
-                origin = 0;
-
-                /* More binlog to fetch */
-                return true;
+        // 先判断当前buffer里的数据够不够一次事件
+        if (limit < FormatDescriptionLogEvent.LOG_EVENT_HEADER_LEN) {
+            // 如果不到一个头就先读一个头
+            int length = readFully(in, buffer, origin + limit, FormatDescriptionLogEvent.LOG_EVENT_HEADER_LEN);
+            if (length < 0) {
+                return false;
             }
-        } else if (origin == 0) {
-            if (limit > buffer.length / 2) {
-                ensureCapacity(buffer.length + limit);
-            }
-//            final int len = in.read(buffer, limit, buffer.length - limit);
-            final int len = readFully(in, buffer, limit, buffer.length - limit);
-//            System.out.println("2-read length:" + len);
-            if (len >= 0) {
-                limit += len;
-
-                /* More binlog to fetch */
-                return true;
-            }
-        } else if (limit > 0) {
-            if (limit >= FormatDescriptionLogEvent.LOG_EVENT_HEADER_LEN) {
-                int lenPosition = position + 4 + 1 + 4;
-                long eventLen = ((long) (0xff & buffer[lenPosition++])) | ((long) (0xff & buffer[lenPosition++]) << 8)
-                                | ((long) (0xff & buffer[lenPosition++]) << 16)
-                                | ((long) (0xff & buffer[lenPosition++]) << 24);
-
-                if (limit >= eventLen) {
-                    return true;
-                } else {
-                    ensureCapacity((int) eventLen);
-                }
-            }
-
-            System.arraycopy(buffer, origin, buffer, 0, limit);
-            position -= origin;
-            origin = 0;
-//            final int len = in.read(buffer, limit, buffer.length - limit);
-            final int len = readFully(in, buffer, limit, buffer.length - limit);
-//            System.out.println("3-read length:" + len);
-            if (len >= 0) {
-                limit += len;
-
-                /* More binlog to fetch */
-                return true;
-            }
-        } else {
-            /* Should not happen. */
-            throw new IllegalArgumentException("Unexcepted limit: " + limit);
+            limit += length;
         }
-
-        /* Reach binlog file end */
-        return false;
+        long eventLen = getUint32(LogEvent.EVENT_LEN_OFFSET);
+        if (limit >= eventLen) {
+            // 足够一次完整事件，无需从底层读取数据
+            return true;
+        }
+        // 先确保buffer足够
+        ensureCapacity((int) eventLen);
+        // 从底层读满一个事件
+        int length = readFully(in, buffer, origin + limit, (int) (eventLen - FormatDescriptionLogEvent.LOG_EVENT_HEADER_LEN));
+        if (length < 0) {
+            return false;
+        }
+        limit += length;
+        return true;
     }
 
     /**
