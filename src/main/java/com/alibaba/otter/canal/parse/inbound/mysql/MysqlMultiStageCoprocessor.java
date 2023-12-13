@@ -354,14 +354,12 @@ public class MysqlMultiStageCoprocessor extends AbstractCanalLifeCycle implement
             try {
                 LogEvent logEvent = event.getEvent();
                 if (event.getEntry() != null) {
-                    if (logEventFilter != null) {
-                        if (logEventFilter.filter(logEvent) != null) {
-                            transactionBuffer.add(event.getEntry());
-                        }
+                    if (logEventFilter == null || logEventFilter.filter(logEvent) != null) {
+                        transactionBuffer.add(event.getEntry());
                     }
                 }
 
-                if (connection instanceof com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection && logEvent.getSemival() == 1) {
+                if (connection instanceof MysqlConnection && logEvent.getSemival() == 1) {
                     // semi ack回报
                     ((MysqlConnection) connection).sendSemiAck(logEvent.getHeader().getLogFileName(),
                         logEvent.getHeader().getLogPos());
