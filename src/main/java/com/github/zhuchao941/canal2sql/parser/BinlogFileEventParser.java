@@ -13,7 +13,6 @@ import com.alibaba.otter.canal.parse.inbound.mysql.tsdb.DatabaseTableMeta;
 import com.alibaba.otter.canal.parse.index.CanalLogPositionManager;
 import com.alibaba.otter.canal.parse.support.AuthenticationInfo;
 import com.alibaba.otter.canal.protocol.position.EntryPosition;
-import com.alibaba.otter.canal.protocol.position.LogPosition;
 import com.github.zhuchao941.canal2sql.filter.LogEventFilter;
 import com.github.zhuchao941.canal2sql.connection.BinlogFileConnection;
 import org.apache.commons.lang.StringUtils;
@@ -129,35 +128,7 @@ public class BinlogFileEventParser extends AbstractMysqlEventParser implements C
 
     @Override
     protected EntryPosition findStartPosition(ErosaConnection connection) {
-        // 处理逻辑
-        // 1. 首先查询上一次解析成功的最后一条记录
-        // 2. 存在最后一条记录，判断一下当前记录是否发生过主备切换
-        // // a. 无机器切换，直接返回
-        // // b. 存在机器切换，按最后一条记录的stamptime进行查找
-        // 3. 不存在最后一条记录，则从默认的位置开始启动
-        LogPosition logPosition = logPositionManager.getLatestIndexBy(destination);
-        if (logPosition == null) {// 找不到历史成功记录
-            EntryPosition entryPosition = masterPosition;
-
-            // 判断一下是否需要按时间订阅
-            if (StringUtils.isEmpty(entryPosition.getJournalName())) {
-                // 如果没有指定binlogName，尝试按照timestamp进行查找
-                if (entryPosition.getTimestamp() != null) {
-                    return new EntryPosition(entryPosition.getTimestamp());
-                }
-            } else {
-                if (entryPosition.getPosition() != null) {
-                    // 如果指定binlogName + offest，直接返回
-                    return entryPosition;
-                } else {
-                    return new EntryPosition(entryPosition.getTimestamp());
-                }
-            }
-        } else {
-            return logPosition.getPostion();
-        }
-
-        return null;
+        return masterPosition;
     }
 
     // ========================= setter / getter =========================
