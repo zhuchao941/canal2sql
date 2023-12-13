@@ -3,6 +3,7 @@ package com.github.zhuchao941.canal2sql.util;
 import com.alibaba.otter.canal.protocol.CanalEntry;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -10,6 +11,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Canal2SqlUtils {
+
+    private static final List<String> typesRequiringQuotes = Arrays.asList("char", "varchar", "binary", "varbinary", "blob", "text", "enum", "set", "json", "date", "datetime", "timestamp", "time", "year");
 
     public static String binlog2Insert(CanalEntry.Entry entry, List<CanalEntry.Column> columns) {
         StringBuilder sb = new StringBuilder();
@@ -81,7 +84,7 @@ public class Canal2SqlUtils {
             return "NULL";
         }
         String mysqlType = column.getMysqlType();
-        if (mysqlType.contains("varchar") || mysqlType.contains("text") || mysqlType.contains("json")) {
+        if (typesRequiringQuotes.contains(mysqlType)) {
             return "'" + column.getValue() + "'";
         }
         return column.getValue();
