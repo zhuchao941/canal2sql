@@ -10,6 +10,7 @@ public class Canal2SqlStarter {
 
     public static void main(String[] args) {
 
+        Long start = System.currentTimeMillis();
 
         Options options = new Options();
 
@@ -165,5 +166,7 @@ public class Canal2SqlStarter {
         config.setSqlType(sqlTypeInput);
 
         new Canal2Sql().run(config);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> System.out.println("# totally cost:" + (System.currentTimeMillis() - start) + " ms")));
     }
 }
