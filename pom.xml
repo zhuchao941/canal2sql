@@ -53,7 +53,38 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.5.3</version>
+                <configuration>
+                    <!--<preparationGoals>clean package</preparationGoals>-->
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <!-- 不使用默认的profile -->
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <!--  在发布时不检查是否提交 svn 的文件过滤配置 -->
+                    <allowReleasePluginSnapshot>true</allowReleasePluginSnapshot>
+                    <allowTimestampedSnapshots>true</allowTimestampedSnapshots>
+                    <checkModificationExcludes>
+                        <checkModificationExclude>.project</checkModificationExclude>
+                        <checkModificationExclude>.settings</checkModificationExclude>
+                        <checkModificationExclude>.classpath</checkModificationExclude>
+                        <checkModificationExclude>**\.project</checkModificationExclude>
+                        <checkModificationExclude>**\.settings</checkModificationExclude>
+                        <checkModificationExclude>**\.classpath</checkModificationExclude>
+                    </checkModificationExcludes>
+                    <!--<commitByProject>true</commitByProject>-->
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.scm</groupId>
+                        <artifactId>maven-scm-provider-gitexe</artifactId>
+                        <version>1.9.4</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>
+    <scm>
+        <url>git@github.com:zhuchao941/canal2sql.git</url>
+        <connection>scm:git:git@github.com:zhuchao941/canal2sql.git</connection>
+        <developerConnection>scm:git:git@github.com:zhuchao941/canal2sql.git</developerConnection>
+    </scm>
 </project>
