@@ -17,7 +17,7 @@ public class Canal2SqlStarter {
         Option rollback = new Option("B", "rollback", false, "Rollback parameter, default is false");
         options.addOption(rollback);
 
-        Option append = new Option("A", "append", false, "Append parameter, default is true");
+        Option append = new Option("A", "append", false, "Append parameter, default is false");
         options.addOption(append);
 
         Option user = new Option("u", "username", true, "Username");
@@ -60,6 +60,7 @@ public class Canal2SqlStarter {
         options.addOption(blackFilter);
 
         Option mode = new Option("mode", true, "Specify running mode");
+        mode.setRequired(true);
         options.addOption(mode);
 
         Option instanceId = new Option("instanceId", true, "Specify instanceId");
@@ -71,8 +72,8 @@ public class Canal2SqlStarter {
         Option sk = new Option("sk", true, "Specify sk");
         options.addOption(sk);
 
-        Option internal = new Option("I", "internal", false, "Append parameter, default is true");
-        options.addOption(internal);
+        Option external = new Option("E", "external", false, "External parameter, default is false");
+        options.addOption(external);
 
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
@@ -82,7 +83,7 @@ public class Canal2SqlStarter {
             cmd = parser.parse(options, args);
         } catch (ParseException e) {
             System.out.println(e.getMessage());
-            formatter.printHelp("utility-name", options);
+            formatter.printHelp("java -jar canal2sql-1.0.0-SNAPSHOT.jar", options);
             System.exit(1);
             return;
         }
@@ -107,31 +108,32 @@ public class Canal2SqlStarter {
         String instanceIdInput = cmd.getOptionValue("instanceId");
         String akInput = cmd.getOptionValue("ak");
         String skInput = cmd.getOptionValue("sk");
-        boolean internalInput = cmd.hasOption("internal");
+        boolean externalInput = cmd.hasOption("external");
         String sqlTypeInput = cmd.getOptionValue("sql_type");
 
         // Print the input values
-        System.out.println("Mode: " + modeInput);
-        System.out.println("Rollback: " + rollbackInput);
-        System.out.println("Append: " + appendInput);
-        System.out.println("Username: " + userInput);
-        System.out.println("Password: " + passwordInput);
-        System.out.println("Port: " + portInput);
-        System.out.println("Host: " + hostInput);
-        System.out.println("File Url: " + fileUrlInput);
-        System.out.println("DIR: " + dirInput);
-        System.out.println("DDL: " + ddlInput);
-        System.out.println("Start datetime: " + startDatetimeInput);
-        System.out.println("End datetime: " + endDatetimeInput);
-        System.out.println("Start position: " + startPositionInput);
-        System.out.println("End position: " + endPositionInput);
-        System.out.println("Filter: " + filterInput);
-        System.out.println("Blacklist filter: " + blackFilterInput);
-        System.out.println("InstanceId: " + instanceIdInput);
-        System.out.println("ak: " + akInput);
-        System.out.println("sk: " + skInput);
-        System.out.println("internal: " + internalInput);
-        System.out.println("sqlType: " + sqlTypeInput);
+        System.out.println("# Mode: " + modeInput);
+        System.out.println("# Rollback: " + rollbackInput);
+        System.out.println("# Append: " + appendInput);
+        System.out.println("# Username: " + userInput);
+        System.out.println("# Password: " + passwordInput);
+        System.out.println("# Port: " + portInput);
+        System.out.println("# Host: " + hostInput);
+        System.out.println("# File Url: " + fileUrlInput);
+        System.out.println("# DIR: " + dirInput);
+        System.out.println("# DDL: " + ddlInput);
+        System.out.println("# Start datetime: " + startDatetimeInput);
+        System.out.println("# End datetime: " + endDatetimeInput);
+        System.out.println("# Start position: " + startPositionInput);
+        System.out.println("# End position: " + endPositionInput);
+        System.out.println("# Filter: " + filterInput);
+        System.out.println("# Blacklist filter: " + blackFilterInput);
+        System.out.println("# InstanceId: " + instanceIdInput);
+        System.out.println("# Ak: " + akInput);
+        System.out.println("# Sk: " + skInput);
+        System.out.println("# External: " + externalInput);
+        System.out.println("# SqlType: " + sqlTypeInput);
+        System.out.println();
 
         // Do something with the input values
 
@@ -162,7 +164,7 @@ public class Canal2SqlStarter {
         config.setInstanceId(instanceIdInput);
         config.setAk(akInput);
         config.setSk(skInput);
-        config.setInternal(internalInput);
+        config.setInternal(!externalInput);
         config.setSqlType(sqlTypeInput);
 
         new Canal2Sql().run(config);
