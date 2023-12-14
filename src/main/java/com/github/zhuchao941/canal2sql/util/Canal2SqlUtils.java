@@ -84,6 +84,10 @@ public class Canal2SqlUtils {
             return "NULL";
         }
         String mysqlType = column.getMysqlType();
+        String[] split = mysqlType.split("\\(");
+        if (split.length != 1) {
+            mysqlType = split[0];
+        }
         if (typesRequiringQuotes.contains(mysqlType)) {
             return "'" + column.getValue() + "'";
         }
