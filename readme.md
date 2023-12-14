@@ -31,6 +31,11 @@
 - binlog_row_image = full
 - 如果用在线解析binlog，对应用户要有SELECT, REPLICATION SLAVE, REPLICATION CLIENT权限
 
+## 可执行jar包下载
+
+最新版本v1.0.0 可在releases页面下载 
+https://github.com/zhuchao941/canal2sql/releases/tag/v1.0.0
+
 ## 运行选项
 
 **binlog模式指定**
