@@ -49,13 +49,9 @@ https://github.com/zhuchao941/canal2sql/releases/tag/v1.0.0
 
 **解析范围控制**
 
-- -start_file 起始binlog文件，仅对在线模式生效。可选
+- -start_position 起始解析位置。可选。对于在线模式，需要指定起始文件+position，如'mysql-bin.007756|52416008'。对于离线模式，只有position
 
-- -end_file 终止binlog文件。可选
-
-- -start_position 起始解析位置。可选。默认为start-file的起始位置
-
-- -end_position 终止解析位置。可选。默认为stop-file的最末位置
+- -end_position 终止解析位置。可选。对于在线模式，需要指定终止文件+position，如'mysql-bin.007756|52416008'。对于离线模式，只有position
 
 - -start_time 起始解析时间，格式'yyyy-MM-dd HH:mm:ss'。可选
 
