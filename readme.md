@@ -94,7 +94,7 @@ https://github.com/zhuchao941/canal2sql/releases/tag/v1.0.0
 
 ### 1. 在线模式
 ```sh
-java -jar ./canal2sql-1.0.0.jar -mode online -uroot -proot -P3306 -hlocalhost
+java -jar ./canal2sql-${version}.jar -mode online -uroot -proot -P3306 -hlocalhost
 ```
 
 在线解析模式只需要指定远程数据库连接参数即可，表结构数据直接实时获取
@@ -104,8 +104,8 @@ java -jar ./canal2sql-1.0.0.jar -mode online -uroot -proot -P3306 -hlocalhost
 binlog文件模式需要指定binlog文件url，表结构数据支持从mysql实时获取也支持从本地ddl文件读取
 
 ```sh
-java -jar ./canal2sql-1.0.0.jar -mode file -file_url 'file:/Users/abc/binlog/mysql-bin.000474' -uroot -proot -P3306 -hlocalhost
-java -jar ./canal2sql-1.0.0.jar -mode file -ddl '/Users/xxx/ddl.sql' -file_url 'http://localhost:8080/binlog/mysql-bin.000474'
+java -jar ./canal2sql-${version}.jar -mode file -file_url 'file:/Users/abc/binlog/mysql-bin.000474' -uroot -proot -P3306 -hlocalhost
+java -jar ./canal2sql-${version}.jar -mode file -ddl '/Users/xxx/ddl.sql' -file_url 'http://localhost:8080/binlog/mysql-bin.000474'
 ```
 
 ### 3. 阿里云rds模式
@@ -113,7 +113,7 @@ java -jar ./canal2sql-1.0.0.jar -mode file -ddl '/Users/xxx/ddl.sql' -file_url '
 阿里云rds模式
 
 ```
-java -jar ./canal2sql-1.0.0.jar -mode aliyun -uroot -proot -P3306 -hlocalhost -start_time "2023-12-07 00:00:00" -end_time "2023-12-07 09:00:00" -instanceId "rm-12345678|1111111" -ak ak -sk sk
+java -jar ./canal2sql-${version}.jar -mode aliyun -uroot -proot -P3306 -hlocalhost -start_time "2023-12-07 00:00:00" -end_time "2023-12-07 09:00:00" -instanceId "rm-12345678|1111111" -ak ak -sk sk
 ```
 
 ## 输出格式解析
