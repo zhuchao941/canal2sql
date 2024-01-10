@@ -73,33 +73,45 @@ public class Canal2Sql {
                             System.out.println();
                             continue;
                         }
-                        for (RowData rowData : rowChage.getRowDatasList()) {
+
+                        boolean minimal = configuration.isMinimal();
+                        if ((eventType == EventType.DELETE || eventType == EventType.INSERT) && minimal && rowChage.getRowDatasList().size() > 1) {
                             if (eventType == EventType.DELETE) {
-                                Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> {
-                                    List<Column> beforeColumnsList = rowData.getBeforeColumnsList();
-                                    List<Column> pkList = beforeColumnsList.stream().filter(i -> i.getIsKey()).collect(Collectors.toList());
-                                    return Canal2SqlUtils.binlog2Delete(entry, pkList);
-                                }, o -> Canal2SqlUtils.binlog2Insert(entry, rowData.getBeforeColumnsList()));
+                                List<RowData> rowDatasList = fRowChange.getRowDatasList();
+                                Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> Canal2SqlUtils.binlog2BatchDelete(entry, false, rowDatasList), o -> Canal2SqlUtils.binlog2BatchInsert(entry, true, rowDatasList));
                             } else if (eventType == EventType.INSERT) {
-                                List<Column> afterColumnsList = rowData.getAfterColumnsList();
-                                Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> Canal2SqlUtils.binlog2Insert(entry, afterColumnsList), o -> {
-                                    List<Column> pkList = afterColumnsList.stream().filter(i -> i.getIsKey()).collect(Collectors.toList());
-                                    return Canal2SqlUtils.binlog2Delete(entry, pkList);
-                                });
-                            } else {
-                                Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> {
+                                List<RowData> rowDatasList = fRowChange.getRowDatasList();
+                                Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> Canal2SqlUtils.binlog2BatchInsert(entry, false, rowDatasList), o -> Canal2SqlUtils.binlog2BatchDelete(entry, true, rowDatasList));
+                            }
+                        } else {
+                            for (RowData rowData : rowChage.getRowDatasList()) {
+                                if (eventType == EventType.DELETE) {
+                                    Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> {
+                                        List<Column> beforeColumnsList = rowData.getBeforeColumnsList();
+                                        List<Column> pkList = beforeColumnsList.stream().filter(i -> i.getIsKey()).collect(Collectors.toList());
+                                        return Canal2SqlUtils.binlog2Delete(entry, pkList);
+                                    }, o -> Canal2SqlUtils.binlog2Insert(entry, rowData.getBeforeColumnsList()));
+                                } else if (eventType == EventType.INSERT) {
                                     List<Column> afterColumnsList = rowData.getAfterColumnsList();
-                                    List<Column> beforeColumnsList = rowData.getBeforeColumnsList();
-                                    List<Column> pkList = beforeColumnsList.stream().filter(i -> i.getIsKey()).collect(Collectors.toList());
-                                    return Canal2SqlUtils.binlog2Update(entry, afterColumnsList.stream().filter(column -> column.getUpdated()).collect(Collectors.toList()), pkList);
-                                }, o -> {
-                                    List<Column> beforeColumnsList = rowData.getBeforeColumnsList();
-                                    List<Column> afterColumnsList = rowData.getAfterColumnsList();
-                                    Map<String, Column> updatedMap = afterColumnsList.stream().filter(column -> column.getUpdated()).collect(Collectors.toMap(k -> k.getName(), v -> v));
-                                    List<Column> pkList = beforeColumnsList.stream().filter(i -> i.getIsKey()).collect(Collectors.toList());
-                                    List<Column> updatedColumnsList = beforeColumnsList.stream().filter(column -> updatedMap.get(column.getName()) != null).collect(Collectors.toList());
-                                    return Canal2SqlUtils.binlog2Update(entry, updatedColumnsList, pkList);
-                                });
+                                    Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> Canal2SqlUtils.binlog2Insert(entry, afterColumnsList), o -> {
+                                        List<Column> pkList = afterColumnsList.stream().filter(i -> i.getIsKey()).collect(Collectors.toList());
+                                        return Canal2SqlUtils.binlog2Delete(entry, pkList);
+                                    });
+                                } else {
+                                    Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> {
+                                        List<Column> afterColumnsList = rowData.getAfterColumnsList();
+                                        List<Column> beforeColumnsList = rowData.getBeforeColumnsList();
+                                        List<Column> pkList = beforeColumnsList.stream().filter(i -> i.getIsKey()).collect(Collectors.toList());
+                                        return Canal2SqlUtils.binlog2Update(entry, afterColumnsList.stream().filter(column -> column.getUpdated()).collect(Collectors.toList()), pkList);
+                                    }, o -> {
+                                        List<Column> beforeColumnsList = rowData.getBeforeColumnsList();
+                                        List<Column> afterColumnsList = rowData.getAfterColumnsList();
+                                        Map<String, Column> updatedMap = afterColumnsList.stream().filter(column -> column.getUpdated()).collect(Collectors.toMap(k -> k.getName(), v -> v));
+                                        List<Column> pkList = beforeColumnsList.stream().filter(i -> i.getIsKey()).collect(Collectors.toList());
+                                        List<Column> updatedColumnsList = beforeColumnsList.stream().filter(column -> updatedMap.get(column.getName()) != null).collect(Collectors.toList());
+                                        return Canal2SqlUtils.binlog2Update(entry, updatedColumnsList, pkList);
+                                    });
+                                }
                             }
                         }
                     }

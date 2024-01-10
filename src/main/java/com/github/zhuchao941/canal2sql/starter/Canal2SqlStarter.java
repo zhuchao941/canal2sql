@@ -75,6 +75,9 @@ public class Canal2SqlStarter {
         Option external = new Option("E", "external", false, "External parameter, default is false");
         options.addOption(external);
 
+        Option minimal = new Option("M", "minimal", false, "Minimal parameter, default is false");
+        options.addOption(minimal);
+
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd;
@@ -110,6 +113,7 @@ public class Canal2SqlStarter {
         String skInput = cmd.getOptionValue("sk");
         boolean externalInput = cmd.hasOption("external");
         String sqlTypeInput = cmd.getOptionValue("sql_type");
+        boolean minimalInput = cmd.hasOption("minimal");
 
         // Print the input values
         System.out.println("# Mode: " + modeInput);
@@ -133,6 +137,7 @@ public class Canal2SqlStarter {
         System.out.println("# Sk: " + skInput);
         System.out.println("# External: " + externalInput);
         System.out.println("# SqlType: " + sqlTypeInput);
+        System.out.println("# Minimal: " + minimalInput);
         System.out.println();
 
         // Do something with the input values
@@ -166,6 +171,7 @@ public class Canal2SqlStarter {
         config.setSk(skInput);
         config.setInternal(!externalInput);
         config.setSqlType(sqlTypeInput);
+        config.setMinimal(minimalInput);
 
         new Canal2Sql().run(config);
 

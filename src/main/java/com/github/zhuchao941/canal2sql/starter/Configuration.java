@@ -24,6 +24,7 @@ public class Configuration {
     private String sk;
     private boolean internal;
     private String sqlType;
+    private boolean minimal;
 
     public boolean isRollback() {
         return rollback;
@@ -191,5 +192,13 @@ public class Configuration {
 
     public void setSqlType(String sqlType) {
         this.sqlType = sqlType;
+    }
+
+    public boolean isMinimal() {
+        return minimal;
+    }
+
+    public void setMinimal(boolean minimal) {
+        this.minimal = minimal;
     }
 }

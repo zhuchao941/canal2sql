@@ -24,6 +24,51 @@ public class Canal2SqlUtils {
         return sb.toString();
     }
 
+    public static String binlog2BatchInsert(CanalEntry.Entry entry, boolean rollback, List<CanalEntry.RowData> rowDataList) {
+        List<CanalEntry.Column> columns = !rollback ? rowDataList.get(0).getAfterColumnsList() : rowDataList.get(0).getBeforeColumnsList();
+        StringBuilder sb = new StringBuilder();
+        sb.append("INSERT INTO ").append("`").append(entry.getHeader().getSchemaName()).append("`.`").append(entry.getHeader().getTableName()).append("`(");
+        sb.append(columns.stream().map(column -> "`" + column.getName() + "`").collect(Collectors.joining(",")));
+        sb.append(") VALUES");
+        for (int i = 0; i < rowDataList.size(); i++) {
+            sb.append("(");
+            CanalEntry.RowData rowData = rowDataList.get(i);
+            List<CanalEntry.Column> demoList = !rollback ? rowData.getAfterColumnsList() : rowData.getBeforeColumnsList();
+            sb.append(demoList.stream().map(column -> getValue(column)).collect(Collectors.joining(",")));
+            sb.append(")");
+            if (i < rowDataList.size() - 1) {
+                sb.append(", ");
+            } else {
+                sb.append(";");
+            }
+        }
+        return sb.toString();
+    }
+
+    public static String binlog2BatchDelete(CanalEntry.Entry entry, boolean rollback, List<CanalEntry.RowData> rowDataList) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("DELETE FROM ").append("`").append(entry.getHeader().getSchemaName()).append("`.`").append(entry.getHeader().getTableName()).append("` WHERE ");
+        for (int i = 0; i < rowDataList.size(); i++) {
+            List<CanalEntry.Column> demoList = !rollback ? rowDataList.get(i).getBeforeColumnsList() : rowDataList.get(i).getAfterColumnsList();
+            List<CanalEntry.Column> pkList = demoList.stream().filter(column -> column.getIsKey()).collect(Collectors.toList());
+            for (int j = 0; j < pkList.size(); j++) {
+                CanalEntry.Column column = pkList.get(j);
+                sb.append("(`").append(column.getName()).append("` = ").append(getValue(column));
+                if (j < pkList.size() - 1) {
+                    sb.append(" and ");
+                } else {
+                    sb.append(")");
+                }
+            }
+            if (i < rowDataList.size() - 1) {
+                sb.append(" or ");
+            } else {
+                sb.append(";");
+            }
+        }
+        return sb.toString();
+    }
+
     public static String binlog2Delete(CanalEntry.Entry entry, List<CanalEntry.Column> pkList) {
         StringBuilder sb = new StringBuilder();
         sb.append("DELETE FROM ").append("`").append(entry.getHeader().getSchemaName()).append("`.`").append(entry.getHeader().getTableName()).append("` WHERE ");
