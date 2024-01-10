@@ -33,8 +33,8 @@
 
 ## 可执行jar包下载
 
-最新版本v1.0.0 可在releases页面下载 
-https://github.com/zhuchao941/canal2sql/releases/tag/v1.0.0
+最新版本v1.1.0 可在releases页面下载 
+https://github.com/zhuchao941/canal2sql/releases/tag/v1.1.0
 
 ## 运行选项
 
@@ -46,6 +46,7 @@ https://github.com/zhuchao941/canal2sql/releases/tag/v1.0.0
 
 - -A, --append   追加模式，支持原SQL和回滚SQL同时显示，可选，默认true
 - -B, --rollback 显示回滚SQL（如在追加模式，则原SQL也会显示，作为注释添加在同一行），可选，默认false
+- -M, --minimal  最小化insert/delete语句，如原语句是batchInsert和batchDelete的，那么会尽量按照原批量语句输出，可选， 默认false（v1.1.0版本新增）
 
 **解析范围控制**
 
