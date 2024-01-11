@@ -78,6 +78,9 @@ public class Canal2SqlStarter {
         Option minimal = new Option("M", "minimal", false, "Minimal parameter, default is false");
         options.addOption(minimal);
 
+        Option sqlType = new Option("sql_type", true, "Specify sqlType");
+        options.addOption(sqlType);
+
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd;

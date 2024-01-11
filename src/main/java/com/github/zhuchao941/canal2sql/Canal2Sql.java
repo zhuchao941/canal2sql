@@ -36,6 +36,7 @@ public class Canal2Sql {
         if (org.apache.commons.lang.StringUtils.isBlank(sqlType)) {
             sqlType = "insert,update,delete,ddl";
         }
+        sqlType = sqlType.toLowerCase();
         Set<String> printableSet = Arrays.stream(sqlType.split(",")).collect(Collectors.toSet());
         final AtomicLong logfileOffset = new AtomicLong(0);
         final AtomicBoolean logged = new AtomicBoolean(false);
@@ -76,28 +77,28 @@ public class Canal2Sql {
 
                         boolean minimal = configuration.isMinimal();
                         if ((eventType == EventType.DELETE || eventType == EventType.INSERT) && minimal && rowChage.getRowDatasList().size() > 1) {
-                            if (eventType == EventType.DELETE) {
+                            if (enableDelete(eventType, printableSet)) {
                                 List<RowData> rowDatasList = fRowChange.getRowDatasList();
                                 Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> Canal2SqlUtils.binlog2BatchDelete(entry, false, rowDatasList), o -> Canal2SqlUtils.binlog2BatchInsert(entry, true, rowDatasList));
-                            } else if (eventType == EventType.INSERT) {
+                            } else if (enableInsert(eventType, printableSet)) {
                                 List<RowData> rowDatasList = fRowChange.getRowDatasList();
                                 Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> Canal2SqlUtils.binlog2BatchInsert(entry, false, rowDatasList), o -> Canal2SqlUtils.binlog2BatchDelete(entry, true, rowDatasList));
                             }
                         } else {
                             for (RowData rowData : rowChage.getRowDatasList()) {
-                                if (eventType == EventType.DELETE) {
+                                if (enableDelete(eventType, printableSet)) {
                                     Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> {
                                         List<Column> beforeColumnsList = rowData.getBeforeColumnsList();
                                         List<Column> pkList = beforeColumnsList.stream().filter(i -> i.getIsKey()).collect(Collectors.toList());
                                         return Canal2SqlUtils.binlog2Delete(entry, pkList);
                                     }, o -> Canal2SqlUtils.binlog2Insert(entry, rowData.getBeforeColumnsList()));
-                                } else if (eventType == EventType.INSERT) {
+                                } else if (enableInsert(eventType, printableSet)) {
                                     List<Column> afterColumnsList = rowData.getAfterColumnsList();
                                     Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> Canal2SqlUtils.binlog2Insert(entry, afterColumnsList), o -> {
                                         List<Column> pkList = afterColumnsList.stream().filter(i -> i.getIsKey()).collect(Collectors.toList());
                                         return Canal2SqlUtils.binlog2Delete(entry, pkList);
                                     });
-                                } else {
+                                } else if (enableUpdate(eventType, printableSet)) {
                                     Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> {
                                         List<Column> afterColumnsList = rowData.getAfterColumnsList();
                                         List<Column> beforeColumnsList = rowData.getBeforeColumnsList();
@@ -119,6 +120,17 @@ public class Canal2Sql {
                 return true;
             }
 
+            private boolean enableDelete(EventType eventType, Set<String> printableSet) {
+                return eventType == EventType.DELETE && printableSet.contains(eventType.name().toLowerCase());
+            }
+
+            private boolean enableInsert(EventType eventType, Set<String> printableSet) {
+                return eventType == EventType.INSERT && printableSet.contains(eventType.name().toLowerCase());
+            }
+
+            private boolean enableUpdate(EventType eventType, Set<String> printableSet) {
+                return eventType == EventType.UPDATE && printableSet.contains(eventType.name().toLowerCase());
+            }
         });
         parser.setLogPositionManager(new AbstractLogPositionManager() {
             @Override
