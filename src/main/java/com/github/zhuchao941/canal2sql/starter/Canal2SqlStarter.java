@@ -1,6 +1,7 @@
 package com.github.zhuchao941.canal2sql.starter;
 
 import com.github.zhuchao941.canal2sql.Canal2Sql;
+import com.github.zhuchao941.canal2sql.util.VersionUtils;
 import org.apache.commons.cli.*;
 import org.springframework.util.StringUtils;
 
@@ -89,7 +90,12 @@ public class Canal2SqlStarter {
             cmd = parser.parse(options, args);
         } catch (ParseException e) {
             System.out.println(e.getMessage());
-            formatter.printHelp("java -jar canal2sql-1.0.0-SNAPSHOT.jar", options);
+            String jarVersion = VersionUtils.getJarVersion();
+            if (jarVersion != null) {
+                formatter.printHelp(String.format("java -jar %s-%s.jar", "canal2sql", jarVersion), options);
+            } else {
+                formatter.printHelp("not in jar, just specify the parameter below", options);
+            }
             System.exit(1);
             return;
         }
