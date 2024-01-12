@@ -33,8 +33,8 @@
 
 ## 可执行jar包下载
 
-最新版本v1.1.0 可在releases页面下载 
-https://github.com/zhuchao941/canal2sql/releases/tag/v1.1.0
+最新版本v1.1.1 可在releases页面下载 
+https://github.com/zhuchao941/canal2sql/releases/tag/v1.1.1
 
 ## 运行选项
 
