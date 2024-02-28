@@ -4,7 +4,7 @@
 
     <groupId>com.github.zhuchao941</groupId>
     <artifactId>canal2sql</artifactId>
-    <version>1.1.2-SNAPSHOT</version>
+    <version>1.1.2</version>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -104,6 +104,6 @@
         <url>git@github.com:zhuchao941/canal2sql.git</url>
         <connection>scm:git:git@github.com:zhuchao941/canal2sql.git</connection>
         <developerConnection>scm:git:git@github.com:zhuchao941/canal2sql.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>v1.1.2</tag>
     </scm>
 </project>
