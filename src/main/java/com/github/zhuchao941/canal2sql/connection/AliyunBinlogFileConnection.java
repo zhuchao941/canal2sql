@@ -81,7 +81,7 @@ public class AliyunBinlogFileConnection implements ErosaConnection {
     public void dump(String binlogfilename, Long binlogPosition, MultiStageCoprocessor coprocessor) throws IOException {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
         String[] split = instanceId.split("\\|");
-        DescribeBinlogFilesResponse describeBinlogFilesResponse = AliyunClient.describeBinlogFiles(new DescribeBinlogFilesRequest().setDBInstanceId(split[0]).setStartTime(format.format(startTime)).setEndTime(format.format(endTime)).setPageSize(999999999), ak, sk);
+        DescribeBinlogFilesResponse describeBinlogFilesResponse = AliyunClient.describeBinlogFiles(new DescribeBinlogFilesRequest().setDBInstanceId(split[0]).setStartTime(format.format(startTime)).setEndTime(format.format(endTime)).setPageSize(1000), ak, sk);
         List<DescribeBinlogFilesResponseBody.DescribeBinlogFilesResponseBodyItemsBinLogFile> binLogFiles = describeBinlogFilesResponse.getBody().getItems().getBinLogFile();
         if (split.length > 1) {
             binLogFiles = binLogFiles.stream().filter(binLogFile -> binLogFile.getHostInstanceID().equals(split[1])).collect(Collectors.toList());
