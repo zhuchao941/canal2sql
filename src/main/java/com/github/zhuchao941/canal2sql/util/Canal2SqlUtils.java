@@ -8,11 +8,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Canal2SqlUtils {
 
     private static final List<String> typesRequiringQuotes = Arrays.asList("char", "varchar", "binary", "varbinary", "blob", "text", "enum", "set", "json", "date", "datetime", "timestamp", "time", "year");
+    // 预编译正则表达式模式
+    private static final Pattern PATTERN_SINGLE_QUOTE = Pattern.compile("'");
 
     public static String binlog2Insert(CanalEntry.Entry entry, List<CanalEntry.Column> columns) {
         StringBuilder sb = new StringBuilder();
@@ -134,7 +138,10 @@ public class Canal2SqlUtils {
             mysqlType = split[0];
         }
         if (typesRequiringQuotes.contains(mysqlType)) {
-            return "'" + column.getValue() + "'";
+            // 使用预编译的模式进行替换
+            Matcher matcher = PATTERN_SINGLE_QUOTE.matcher(column.getValue());
+            String escapedStr = matcher.replaceAll("\\\\'");
+            return "'" + escapedStr + "'";
         }
         return column.getValue();
     }
