@@ -23,13 +23,12 @@ public class OnlineParserBuilder {
 
         FileWithPosition startFileWithPosition = StringUtils.isNotBlank(startPositionStr) ? extract(startPositionStr) : new FileWithPosition();
         FileWithPosition endFileWithPosition = StringUtils.isNotBlank(endPositionStr) ? extract(endPositionStr) : new FileWithPosition();
+        Long startDatetime = configuration.getStartDatetime() != null ? configuration.getStartDatetime().getTime() : null;
 
         MysqlOnlineEventParser parser = new MysqlOnlineEventParser();
         parser.setMasterInfo(new AuthenticationInfo(new InetSocketAddress(configuration.getHost(), configuration.getPort()), configuration.getUsername(), configuration.getPassword()));
-        // 这里直接指定startPosition性能更好
-        if (startFileWithPosition != null) {
-            parser.setMasterPosition(new EntryPosition(startFileWithPosition.getFileName(), startFileWithPosition.getPosition()));
-        }
+        // 通过 startPosition 或者 startDatetime 标定读取 binlog 内容的开始位置
+        parser.setMasterPosition(new EntryPosition(startFileWithPosition.getFileName(), startFileWithPosition.getPosition(), startDatetime));
         parser.setLogEventFilter(new LogEventFilter(configuration.getStartDatetime(), configuration.getEndDatetime(), startFileWithPosition.getPosition(), endFileWithPosition.getPosition(), startFileWithPosition.getFileName(), endFileWithPosition.getFileName()));
         return parser;
     }
