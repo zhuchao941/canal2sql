@@ -16,7 +16,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javafx.util.Pair;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -69,9 +68,12 @@ public class TableMetaCache {
 
             @Override
             public TableMeta load(String name) throws Exception {
-                Pair<String, String> pair = extractSchemaAndTableName(name);
-                String schema = pair.getKey();
-                String table = pair.getValue();
+                String[] arr = extractSchemaAndTableName(name);
+                if (arr == null) {
+                    return null;
+                }
+                String schema = arr[0];
+                String table = arr[1];
                 return memoryTableMeta.find(schema, table);
             }
         });
@@ -114,18 +116,18 @@ public class TableMetaCache {
         }
     }
 
-    private static Pair<String, String> extractSchemaAndTableName(String fullname){
+    private static String[] extractSchemaAndTableName(String fullname) {
         String[] names = StringUtils.split(fullname, "`.`");
         if (names.length == 2) {
             String schema = names[0];
             String table = names[1].substring(0, names[1].length());
-            return new Pair<>(schema, table);
+            return new String[]{schema, table};
         } else if (names.length > 2) {
             Matcher matcher = PATTERN.matcher(fullname);
             if (matcher.find()) {
                 String schema = matcher.group(1);
                 String table = matcher.group(2);
-                return new Pair<>(schema, table);
+                return new String[]{schema, table};
             }
         }
         return null;
@@ -139,12 +141,12 @@ public class TableMetaCache {
             packet = connection.query("desc " + fullname);
         }
 
-        Pair<String, String> pair = extractSchemaAndTableName(fullname);
-        if (pair == null) {
+        String[] arr = extractSchemaAndTableName(fullname);
+        if (arr == null) {
             return null;
         }
-        String schema = pair.getKey();
-        String table = pair.getValue();
+        String schema = arr[0];
+        String table = arr[1];
         return new TableMeta(schema, table, parseTableMeta(schema, table, packet));
     }
 
