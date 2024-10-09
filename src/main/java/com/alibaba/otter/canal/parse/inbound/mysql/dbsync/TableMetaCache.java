@@ -14,6 +14,9 @@ import com.alibaba.otter.canal.protocol.position.EntryPosition;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javafx.util.Pair;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -38,6 +41,8 @@ public class TableMetaCache {
     public static final String              COLUMN_KEY     = "COLUMN_KEY";
     public static final String              COLUMN_DEFAULT = "COLUMN_DEFAULT";
     public static final String              EXTRA          = "EXTRA";
+
+    private static final Pattern PATTERN = Pattern.compile("`(.*)`.`(.*)`");
     private MysqlConnection                 connection;
     private boolean                         isOnRDS        = false;
     private boolean                         isOnTSDB       = false;
@@ -64,9 +69,9 @@ public class TableMetaCache {
 
             @Override
             public TableMeta load(String name) throws Exception {
-                String[] names = StringUtils.split(name, "`.`");
-                String schema = names[0];
-                String table = names[1];
+                Pair<String, String> pair = extractSchemaAndTableName(name);
+                String schema = pair.getKey();
+                String table = pair.getValue();
                 return memoryTableMeta.find(schema, table);
             }
         });
@@ -109,20 +114,38 @@ public class TableMetaCache {
         }
     }
 
-    private synchronized TableMeta getTableMetaByDB(String fullname) throws IOException {
-        try {
-            ResultSetPacket packet = connection.query("show create table " + fullname);
-            String[] names = StringUtils.split(fullname, "`.`");
+    private static Pair<String, String> extractSchemaAndTableName(String fullname){
+        String[] names = StringUtils.split(fullname, "`.`");
+        if (names.length == 2) {
             String schema = names[0];
             String table = names[1].substring(0, names[1].length());
-            return new TableMeta(schema, table, parseTableMeta(schema, table, packet));
-        } catch (Throwable e) { // fallback to desc table
-            ResultSetPacket packet = connection.query("desc " + fullname);
-            String[] names = StringUtils.split(fullname, "`.`");
-            String schema = names[0];
-            String table = names[1].substring(0, names[1].length());
-            return new TableMeta(schema, table, parseTableMetaByDesc(packet));
+            return new Pair<>(schema, table);
+        } else if (names.length > 2) {
+            Matcher matcher = PATTERN.matcher(fullname);
+            if (matcher.find()) {
+                String schema = matcher.group(1);
+                String table = matcher.group(2);
+                return new Pair<>(schema, table);
+            }
         }
+        return null;
+    }
+
+    private synchronized TableMeta getTableMetaByDB(String fullname) throws IOException {
+        ResultSetPacket packet = null;
+        try {
+            packet = connection.query("show create table " + fullname);
+        } catch (Throwable e) { // fallback to desc table
+            packet = connection.query("desc " + fullname);
+        }
+
+        Pair<String, String> pair = extractSchemaAndTableName(fullname);
+        if (pair == null) {
+            return null;
+        }
+        String schema = pair.getKey();
+        String table = pair.getValue();
+        return new TableMeta(schema, table, parseTableMeta(schema, table, packet));
     }
 
     public static List<FieldMeta> parseTableMeta(String schema, String table, ResultSetPacket packet) {
@@ -301,4 +324,11 @@ public class TableMetaCache {
         this.isOnRDS = isOnRDS;
     }
 
+    public static void main(String[] args) {
+        System.out.println(extractSchemaAndTableName("`zabbix7.6`.`test`"));
+        System.out.println(extractSchemaAndTableName("zabbix7.6.`test`"));
+        System.out.println(extractSchemaAndTableName("`zabbix7.6`.test"));
+        System.out.println(extractSchemaAndTableName("zabbix.`test`"));
+
+    }
 }
