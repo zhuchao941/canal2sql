@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 public class Canal2SqlUtils {
 
-    private static final List<String> typesRequiringQuotes = Arrays.asList("char", "varchar", "binary", "varbinary", "blob", "text", "enum", "set", "json", "date", "datetime", "timestamp", "time", "year");
+    private static final List<String> typesRequiringQuotes = Arrays.asList("char", "varchar", "binary", "varbinary", "blob", "text", "longtext", "mediumtext", "enum", "set", "json", "date", "datetime", "timestamp", "time", "year");
     // 预编译正则表达式模式
     private static final Pattern PATTERN_SINGLE_QUOTE = Pattern.compile("'");
 
