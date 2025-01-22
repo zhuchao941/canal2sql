@@ -40,6 +40,7 @@ public class Canal2Sql {
         Set<String> printableSet = Arrays.stream(sqlType.split(",")).collect(Collectors.toSet());
         final AtomicLong logfileOffset = new AtomicLong(0);
         final AtomicBoolean logged = new AtomicBoolean(false);
+        boolean clean = configuration.isClean();
         parser.setEventSink(new AbstractCanalEventSink<List<Entry>>() {
 
             // 这里都是单线程进来的
@@ -70,7 +71,7 @@ public class Canal2Sql {
                         final RowChange fRowChange = rowChage;
 
                         if (rowChage.getIsDdl() && printableSet.contains("ddl")) {
-                            Canal2SqlUtils.printSql(rollback, append, new AtomicBoolean(false),
+                            Canal2SqlUtils.printSql(clean, rollback, append, new AtomicBoolean(false),
                                     entry.getHeader().getLogfileOffset(), entry,
                                     o -> fRowChange.getSql().endsWith(";") ? fRowChange.getSql()
                                             : fRowChange.getSql() + ";",
@@ -83,27 +84,27 @@ public class Canal2Sql {
                         if ((eventType == EventType.DELETE || eventType == EventType.INSERT) && minimal && rowChage.getRowDatasList().size() > 1) {
                             if (enableDelete(eventType, printableSet)) {
                                 List<RowData> rowDatasList = fRowChange.getRowDatasList();
-                                Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> Canal2SqlUtils.binlog2BatchDelete(entry, false, rowDatasList), o -> Canal2SqlUtils.binlog2BatchInsert(entry, true, rowDatasList));
+                                Canal2SqlUtils.printSql(clean, rollback, append, logged, logfileOffset.get(), entry, o -> Canal2SqlUtils.binlog2BatchDelete(entry, false, rowDatasList), o -> Canal2SqlUtils.binlog2BatchInsert(entry, true, rowDatasList));
                             } else if (enableInsert(eventType, printableSet)) {
                                 List<RowData> rowDatasList = fRowChange.getRowDatasList();
-                                Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> Canal2SqlUtils.binlog2BatchInsert(entry, false, rowDatasList), o -> Canal2SqlUtils.binlog2BatchDelete(entry, true, rowDatasList));
+                                Canal2SqlUtils.printSql(clean, rollback, append, logged, logfileOffset.get(), entry, o -> Canal2SqlUtils.binlog2BatchInsert(entry, false, rowDatasList), o -> Canal2SqlUtils.binlog2BatchDelete(entry, true, rowDatasList));
                             }
                         } else {
                             for (RowData rowData : rowChage.getRowDatasList()) {
                                 if (enableDelete(eventType, printableSet)) {
-                                    Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> {
+                                    Canal2SqlUtils.printSql(clean, rollback, append, logged, logfileOffset.get(), entry, o -> {
                                         List<Column> beforeColumnsList = rowData.getBeforeColumnsList();
                                         List<Column> pkList = beforeColumnsList.stream().filter(i -> i.getIsKey()).collect(Collectors.toList());
                                         return Canal2SqlUtils.binlog2Delete(entry, pkList);
                                     }, o -> Canal2SqlUtils.binlog2Insert(entry, rowData.getBeforeColumnsList()));
                                 } else if (enableInsert(eventType, printableSet)) {
                                     List<Column> afterColumnsList = rowData.getAfterColumnsList();
-                                    Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> Canal2SqlUtils.binlog2Insert(entry, afterColumnsList), o -> {
+                                    Canal2SqlUtils.printSql(clean, rollback, append, logged, logfileOffset.get(), entry, o -> Canal2SqlUtils.binlog2Insert(entry, afterColumnsList), o -> {
                                         List<Column> pkList = afterColumnsList.stream().filter(i -> i.getIsKey()).collect(Collectors.toList());
                                         return Canal2SqlUtils.binlog2Delete(entry, pkList);
                                     });
                                 } else if (enableUpdate(eventType, printableSet)) {
-                                    Canal2SqlUtils.printSql(rollback, append, logged, logfileOffset.get(), entry, o -> {
+                                    Canal2SqlUtils.printSql(clean, rollback, append, logged, logfileOffset.get(), entry, o -> {
                                         List<Column> afterColumnsList = rowData.getAfterColumnsList();
                                         List<Column> beforeColumnsList = rowData.getBeforeColumnsList();
                                         List<Column> pkList = beforeColumnsList.stream().filter(i -> i.getIsKey()).collect(Collectors.toList());

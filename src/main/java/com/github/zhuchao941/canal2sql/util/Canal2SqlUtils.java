@@ -105,7 +105,7 @@ public class Canal2SqlUtils {
         return sb.toString();
     }
 
-    public static void printSql(boolean rollback, boolean append, AtomicBoolean logged, long logfileOffset, CanalEntry.Entry entry, Function<Object, String> sqlFunction, Function<Object, String> rollbackFunction) {
+    public static void printSql(boolean clean, boolean rollback, boolean append, AtomicBoolean logged, long logfileOffset, CanalEntry.Entry entry, Function<Object, String> sqlFunction, Function<Object, String> rollbackFunction) {
         String sql = "";
         String rollbackSql = "";
         if (append || rollback) {
@@ -121,7 +121,8 @@ public class Canal2SqlUtils {
         } else if (rollback) {
             sql = rollbackSql;
         }
-        if (logged.compareAndSet(false, true)) {
+        // 这里要先compareAndSet，因为外围会根据这个来输出分割行
+        if (logged.compareAndSet(false, true) && !clean) {
             String logfileName = entry.getHeader().getLogfileName();
             System.out.println("#" + logfileName + ":" + logfileOffset + " " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(entry.getHeader().getExecuteTime())));
         }

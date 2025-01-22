@@ -15,7 +15,8 @@ public class Canal2SqlStarter {
 
         Options options = new Options();
 
-        Option rollback = new Option("B", "rollback", false, "Rollback parameter, default is false");
+        Option rollback = new Option("B", "rollback", false,
+                "Rollback parameter, default is false");
         options.addOption(rollback);
 
         Option append = new Option("A", "append", false, "Append parameter, default is false");
@@ -73,7 +74,8 @@ public class Canal2SqlStarter {
         Option sk = new Option("sk", true, "Specify sk");
         options.addOption(sk);
 
-        Option external = new Option("E", "external", false, "External parameter, default is false");
+        Option external = new Option("E", "external", false,
+                "External parameter, default is false");
         options.addOption(external);
 
         Option minimal = new Option("M", "minimal", false, "Minimal parameter, default is false");
@@ -81,6 +83,9 @@ public class Canal2SqlStarter {
 
         Option sqlType = new Option("sql_type", true, "Specify sqlType");
         options.addOption(sqlType);
+
+        Option clean = new Option("M", "clean", false, "Clean parameter, default is false");
+        options.addOption(clean);
 
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
@@ -92,7 +97,8 @@ public class Canal2SqlStarter {
             System.out.println(e.getMessage());
             String jarVersion = VersionUtils.getJarVersion();
             if (jarVersion != null) {
-                formatter.printHelp(String.format("java -jar %s-%s.jar", "canal2sql", jarVersion), options);
+                formatter.printHelp(String.format("java -jar %s-%s.jar", "canal2sql", jarVersion),
+                        options);
             } else {
                 formatter.printHelp("not in jar, just specify the parameter below", options);
             }
@@ -123,31 +129,35 @@ public class Canal2SqlStarter {
         boolean externalInput = cmd.hasOption("external");
         String sqlTypeInput = cmd.getOptionValue("sql_type");
         boolean minimalInput = cmd.hasOption("minimal");
+        boolean cleanInput = cmd.hasOption("clean");
 
-        // Print the input values
-        System.out.println("# Mode: " + modeInput);
-        System.out.println("# Rollback: " + rollbackInput);
-        System.out.println("# Append: " + appendInput);
-        System.out.println("# Username: " + userInput);
-        System.out.println("# Password: " + passwordInput);
-        System.out.println("# Port: " + portInput);
-        System.out.println("# Host: " + hostInput);
-        System.out.println("# File Url: " + fileUrlInput);
-        System.out.println("# DIR: " + dirInput);
-        System.out.println("# DDL: " + ddlInput);
-        System.out.println("# Start datetime: " + startDatetimeInput);
-        System.out.println("# End datetime: " + endDatetimeInput);
-        System.out.println("# Start position: " + startPositionInput);
-        System.out.println("# End position: " + endPositionInput);
-        System.out.println("# Filter: " + filterInput);
-        System.out.println("# Blacklist filter: " + blackFilterInput);
-        System.out.println("# InstanceId: " + instanceIdInput);
-        System.out.println("# Ak: " + akInput);
-        System.out.println("# Sk: " + skInput);
-        System.out.println("# External: " + externalInput);
-        System.out.println("# SqlType: " + sqlTypeInput);
-        System.out.println("# Minimal: " + minimalInput);
-        System.out.println();
+        if (!cleanInput) {
+            // Print the input values
+            System.out.println("# Mode: " + modeInput);
+            System.out.println("# Rollback: " + rollbackInput);
+            System.out.println("# Append: " + appendInput);
+            System.out.println("# Username: " + userInput);
+            System.out.println("# Password: " + passwordInput);
+            System.out.println("# Port: " + portInput);
+            System.out.println("# Host: " + hostInput);
+            System.out.println("# File Url: " + fileUrlInput);
+            System.out.println("# DIR: " + dirInput);
+            System.out.println("# DDL: " + ddlInput);
+            System.out.println("# Start datetime: " + startDatetimeInput);
+            System.out.println("# End datetime: " + endDatetimeInput);
+            System.out.println("# Start position: " + startPositionInput);
+            System.out.println("# End position: " + endPositionInput);
+            System.out.println("# Filter: " + filterInput);
+            System.out.println("# Blacklist filter: " + blackFilterInput);
+            System.out.println("# InstanceId: " + instanceIdInput);
+            System.out.println("# Ak: " + akInput);
+            System.out.println("# Sk: " + skInput);
+            System.out.println("# External: " + externalInput);
+            System.out.println("# SqlType: " + sqlTypeInput);
+            System.out.println("# Minimal: " + minimalInput);
+            System.out.println("# Clean: " + cleanInput);
+            System.out.println();
+        }
 
         // Do something with the input values
 
@@ -163,8 +173,10 @@ public class Canal2SqlStarter {
         config.setDdl(ddlInput);
         try {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            config.setStartDatetime(StringUtils.isEmpty(startDatetimeInput) ? null : simpleDateFormat.parse(startDatetimeInput));
-            config.setEndDatetime(StringUtils.isEmpty(endDatetimeInput) ? null : simpleDateFormat.parse(endDatetimeInput));
+            config.setStartDatetime(StringUtils.isEmpty(startDatetimeInput) ? null
+                    : simpleDateFormat.parse(startDatetimeInput));
+            config.setEndDatetime(StringUtils.isEmpty(endDatetimeInput) ? null
+                    : simpleDateFormat.parse(endDatetimeInput));
         } catch (java.text.ParseException e) {
             throw new RuntimeException(e);
         }
@@ -181,9 +193,11 @@ public class Canal2SqlStarter {
         config.setInternal(!externalInput);
         config.setSqlType(sqlTypeInput);
         config.setMinimal(minimalInput);
+        config.setClean(cleanInput);
 
         new Canal2Sql().run(config);
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> System.out.println("# totally cost:" + (System.currentTimeMillis() - start) + " ms")));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> System.out.println(
+                "# totally cost:" + (System.currentTimeMillis() - start) + " ms")));
     }
 }

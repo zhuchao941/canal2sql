@@ -25,6 +25,7 @@ public class Configuration {
     private boolean internal;
     private String sqlType;
     private boolean minimal;
+    private boolean clean;
 
     public boolean isRollback() {
         return rollback;
@@ -200,5 +201,13 @@ public class Configuration {
 
     public void setMinimal(boolean minimal) {
         this.minimal = minimal;
+    }
+
+    public boolean isClean() {
+        return clean;
+    }
+
+    public void setClean(boolean clean) {
+        this.clean = clean;
     }
 }
