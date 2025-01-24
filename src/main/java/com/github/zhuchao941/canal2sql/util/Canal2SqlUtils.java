@@ -2,6 +2,7 @@ package com.github.zhuchao941.canal2sql.util;
 
 import com.alibaba.otter.canal.protocol.CanalEntry;
 
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
 
 public class Canal2SqlUtils {
 
-    private static final List<String> typesRequiringQuotes = Arrays.asList("char", "varchar", "binary", "varbinary", "blob", "text", "enum", "set", "json", "date", "datetime", "timestamp", "time", "year");
+    private static final List<String> typesRequiringQuotes = Arrays.asList("char", "varchar", "binary", "varbinary", "longtext", "text", "enum", "set", "json", "date", "datetime", "timestamp", "time", "year");
     // 预编译正则表达式模式
     private static final Pattern PATTERN_SINGLE_QUOTE = Pattern.compile("'");
 
@@ -142,6 +143,9 @@ public class Canal2SqlUtils {
             Matcher matcher = PATTERN_SINGLE_QUOTE.matcher(column.getValue());
             String escapedStr = matcher.replaceAll("\\\\'");
             return "'" + escapedStr + "'";
+        }else if ("longblob".equals(mysqlType) || "blob".equals(mysqlType)) {
+            String result = new String(column.getValue().getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
+            return "'" + result + "'";
         }
         return column.getValue();
     }
