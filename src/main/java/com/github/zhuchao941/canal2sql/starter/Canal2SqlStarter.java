@@ -84,7 +84,7 @@ public class Canal2SqlStarter {
         Option sqlType = new Option("sql_type", true, "Specify sqlType");
         options.addOption(sqlType);
 
-        Option clean = new Option("M", "clean", false, "Clean parameter, default is false");
+        Option clean = new Option("C", "clean", false, "Clean parameter, default is false");
         options.addOption(clean);
 
         CommandLineParser parser = new DefaultParser();
