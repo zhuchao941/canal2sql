@@ -47,6 +47,7 @@ https://github.com/zhuchao941/canal2sql/releases/tag/v1.1.4
 - -A, --append   追加模式，支持原SQL和回滚SQL同时显示，可选，默认true
 - -B, --rollback 显示回滚SQL（如在追加模式，则原SQL也会显示，作为注释添加在同一行），可选，默认false
 - -M, --minimal  最小化insert/delete语句，如原语句是batchInsert和batchDelete的，那么会尽量按照原批量语句输出，可选， 默认false（v1.1.0版本新增）
+- -C, --clean    纯净模式，只输出SQL语句和耗时，适用于直接捞出SQL回滚的场景（可结合`tac`命令或者`tail -r`倒序输出）
 
 **解析范围控制**
 
